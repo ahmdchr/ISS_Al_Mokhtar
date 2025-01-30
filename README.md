@@ -9,7 +9,7 @@ This project involves developing a pixel-style game using Pygame, a Python libra
 ## Charaters Design
 ### Mokhtar
 
-![Mokhtar](Mokhtar_Character.png)
+![Logo](Mokhtar_Character.png)
 
 ## Screenshots
 
