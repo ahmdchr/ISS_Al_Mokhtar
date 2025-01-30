@@ -77,7 +77,7 @@ def main_menu():
         screen.fill(WHITE)
 
         # Draw title
-        title_surface = font.render("Pixel Game", True, BLACK)
+        title_surface = font.render("Al-Mokhtar", True, BLACK)
         title_rect = title_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
         screen.blit(title_surface, title_rect)
 
