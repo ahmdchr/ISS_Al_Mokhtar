@@ -13,7 +13,7 @@ This project involves developing a pixel-style game using Pygame, a Python libra
 
 ![App Screenshot](screenshots/Al-Mokhtar_Game_play.png)
 
-![App Screenshot](Al-Mokhtar_Movement_Animation.png)
+![App Screenshot](screenshots/Al-Mokhtar_Movement_Animation.png)
 ## Run Locally
 
 Clone the project
