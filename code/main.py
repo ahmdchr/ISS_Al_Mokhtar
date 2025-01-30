@@ -71,7 +71,7 @@ class Button:
 start_button = Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 100, "Start Game", small_font, GRAY, RED)
 quit_button = Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 100, 200, 100, "Quit", small_font, GRAY, RED)
 
-# Main menu loop
+# Main menu
 def main_menu():
     while True:
         screen.fill(WHITE)
