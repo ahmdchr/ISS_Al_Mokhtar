@@ -6,6 +6,10 @@ This project involves developing a pixel-style game using Pygame, a Python libra
 
 ![Logo](logo.jpg)
 
+## Charaters Design
+### Mokhtar
+
+![Mokhtar](Mokhtar_Character.png)
 
 ## Screenshots
 
