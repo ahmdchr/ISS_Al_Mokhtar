@@ -103,7 +103,7 @@ def main_menu():
         pygame.display.flip()
 
 
-#gameplay
+#Gameplay
 def gameplay():
     global x,y,direction,current_frame,animation_timer
     running = True
