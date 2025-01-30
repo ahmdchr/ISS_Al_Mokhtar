@@ -29,7 +29,7 @@ Go to the project directory
   cd ISS_Al_Mokhtar
 ```
 
-Install dependencies
+Install librairies
 
 ```bash
   pip install pygame
