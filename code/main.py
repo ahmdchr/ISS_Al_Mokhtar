@@ -5,7 +5,7 @@ pygame.init()
 
 # Screen dimensions
 SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 800
+SCREEN_HEIGHT = 811
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Al-Mokhtar")
 
@@ -46,35 +46,38 @@ animation_timer = 0
 
 # Button class
 class Button:
-    def __init__(self, x, y, width, height, text, font, color, hover_color):
+    def __init__(self, x, y, width, height, image, hover_image):
         self.rect = pygame.Rect(x, y, width, height)
-        self.text = text
-        self.font = font
-        self.color = color
-        self.hover_color = hover_color
+        self.image = pygame.transform.scale(image, (width, height))
+        self.hover_image = pygame.transform.scale(hover_image, (width, height))
         self.hovered = False
 
     def draw(self, screen):
         if self.hovered:
-            pygame.draw.rect(screen, self.hover_color, self.rect)
+            screen.blit(self.hover_image, self.rect.topleft)
         else:
-            pygame.draw.rect(screen, self.color, self.rect)
-        
-        text_surface = self.font.render(self.text, True, BLACK)
-        text_rect = text_surface.get_rect(center=self.rect.center)
-        screen.blit(text_surface, text_rect)
+            screen.blit(self.image, self.rect.topleft)
 
     def check_hover(self, mouse_pos):
         self.hovered = self.rect.collidepoint(mouse_pos)
 
+# Load background and button images
+background = pygame.image.load('Mainmenu/Background.jpg')
+background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+start_button_image = pygame.image.load('Mainmenu/Start_game_button.png')
+start_button_hover_image = pygame.image.load('Mainmenu/Start_game_button.png')
+quit_button_image = pygame.image.load('Mainmenu/Load_game_button.png')
+quit_button_hover_image = pygame.image.load('Mainmenu/Load_game_button.png')
+
 # Create buttons
-start_button = Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 100, "Start Game", small_font, GRAY, RED)
-quit_button = Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 100, 200, 100, "Quit", small_font, GRAY, RED)
+start_button = Button(SCREEN_WIDTH // 2 - 275, SCREEN_HEIGHT // 2 ,527, 133, start_button_image, start_button_hover_image)
+quit_button = Button(SCREEN_WIDTH // 2 - 275, SCREEN_HEIGHT // 2 + 200, 527, 133, quit_button_image, quit_button_hover_image)
 
 # Main menu
 def main_menu():
     while True:
-        screen.fill(WHITE)
+        screen.blit(background, (0, 0))
 
         # Draw title
         title_surface = font.render("Al-Mokhtar", True, BLACK)
@@ -102,10 +105,9 @@ def main_menu():
 
         pygame.display.flip()
 
-
-#Gameplay
+# Gameplay
 def gameplay():
-    global x,y,direction,current_frame,animation_timer
+    global x, y, direction, current_frame, animation_timer
     running = True
     while running:
         deltaTime = clock.tick(30) / 1000
@@ -158,12 +160,11 @@ def gameplay():
                 screen.blit(image_idle_up[current_frame % 3], (x, y))
 
         pygame.display.flip()
+
 while True:
     if main_menu():
         if not gameplay():
             break
-    else:
-        break
 
 pygame.quit()
 sys.exit()
