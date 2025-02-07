@@ -70,6 +70,10 @@ start_button_hover_image = pygame.image.load('Mainmenu/Start_game_button.png')
 quit_button_image = pygame.image.load('Mainmenu/Load_game_button.png')
 quit_button_hover_image = pygame.image.load('Mainmenu/Load_game_button.png')
 
+# Load title image
+title_image = pygame.image.load('Mainmenu/Title.png')  # Replace with your title image path
+title_image = pygame.transform.scale(title_image, (627, 145))  # Adjust size as needed
+
 # Create buttons
 start_button = Button(SCREEN_WIDTH // 2 - 275, SCREEN_HEIGHT // 2 ,527, 133, start_button_image, start_button_hover_image)
 quit_button = Button(SCREEN_WIDTH // 2 - 275, SCREEN_HEIGHT // 2 + 200, 527, 133, quit_button_image, quit_button_hover_image)
@@ -79,10 +83,9 @@ def main_menu():
     while True:
         screen.blit(background, (0, 0))
 
-        # Draw title
-        title_surface = font.render("Al-Mokhtar", True, BLACK)
-        title_rect = title_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
-        screen.blit(title_surface, title_rect)
+        # Draw title image
+        title_rect = title_image.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
+        screen.blit(title_image, title_rect)
 
         # Draw buttons
         start_button.draw(screen)
