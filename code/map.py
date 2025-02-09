@@ -29,15 +29,28 @@ class Map:
                 reader = csv.reader(csvfile, delimiter=',')
                 layers.append([list(map(int, row)) for row in reader])
         return layers
+    
+    def update_camera(self, player_x, player_y):
+        """Center the camera on the player while keeping it within the map bounds."""
+        half_screen_x = SCREEN_WIDTH // 2
+        half_screen_y = SCREEN_HEIGHT // 2
+
+        # Convert player position to tile coordinates
+        tile_x = int(player_x // SCALED_TILE_SIZE)
+        tile_y = int(player_y // SCALED_TILE_SIZE)
+
+        # Update camera position
+        self.camera_x = max(0, min(tile_x - self.visible_width // 2, len(self.map_layers[0][0]) - self.visible_width))
+        self.camera_y = max(0, min(tile_y - self.visible_height // 2, len(self.map_layers[0]) - self.visible_height))
 
     def draw(self, screen, x_offset=0, y_offset=0):
-        """Draw the map at an adjustable position."""
+        """Draw only the visible part of the map, adjusted for camera position."""
         for layer in self.map_layers:
             for y in range(self.visible_height):
                 for x in range(self.visible_width):
                     map_x = x + self.camera_x
                     map_y = y + self.camera_y
-                    
+
                     if 0 <= map_y < len(layer) and 0 <= map_x < len(layer[0]):
                         tile = layer[map_y][map_x]
                         if tile != -1:
@@ -45,6 +58,7 @@ class Map:
                                 pygame.transform.scale(self.tiles[tile], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
                                 (x * SCALED_TILE_SIZE + x_offset, y * SCALED_TILE_SIZE + y_offset)
                             )
+
 
 
     def is_obstacle(self, x, y):
