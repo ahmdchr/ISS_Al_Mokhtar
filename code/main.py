@@ -14,7 +14,7 @@ def main():
     
     game_map = Map()
     player = Player(game_map)
-    main_menu = MainMenu()
+    main_menu = MainMenu(game_map)
 
     while True:
         if main_menu_loop(screen, main_menu):
@@ -26,6 +26,8 @@ def main():
     sys.exit()
 
 def main_menu_loop(screen, main_menu):
+    clock = pygame.time.Clock()
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -40,8 +42,12 @@ def main_menu_loop(screen, main_menu):
                 elif main_menu.quit_button.hovered:
                     return False
 
+        main_menu.update()  # Move the background
         main_menu.draw(screen)
         pygame.display.flip()
+        clock.tick(60)  # Maintain 60 FPS
+
+
 
 def gameplay_loop(screen, clock, player, game_map):
     running = True

@@ -30,8 +30,9 @@ class Map:
                 layers.append([list(map(int, row)) for row in reader])
         return layers
 
-    def draw(self, screen):
-        for layer in self.map_layers:  
+    def draw(self, screen, x_offset=0, y_offset=0):
+        """Draw the map at an adjustable position."""
+        for layer in self.map_layers:
             for y in range(self.visible_height):
                 for x in range(self.visible_width):
                     map_x = x + self.camera_x
@@ -42,8 +43,9 @@ class Map:
                         if tile != -1:
                             screen.blit(
                                 pygame.transform.scale(self.tiles[tile], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
-                                (x * SCALED_TILE_SIZE, y * SCALED_TILE_SIZE)
+                                (x * SCALED_TILE_SIZE + x_offset, y * SCALED_TILE_SIZE + y_offset)
                             )
+
 
     def is_obstacle(self, x, y):
         #Check if the tile at (x, y) is an obstacle.
