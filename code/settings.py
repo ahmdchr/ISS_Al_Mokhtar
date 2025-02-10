@@ -1,0 +1,46 @@
+# Screen dimensions
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 811
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (200, 200, 200)
+RED = (255, 0, 0)
+
+# Fonts
+FONT = None  # Will be initialized in main.py
+SMALL_FONT = None  # Will be initialized in main.py
+
+# Paths
+TILESET_PATH = 'maps/tileset.png'
+MAP_CSV_PATHS = ["maps/map_default/map_default._no-stepping1.csv",
+                "maps/map_default/map_default._step.csv", 
+                "maps/map_default/map_default._step2.csv",
+                "maps/map_default/map_default._no-stepping2.csv",
+                "maps/map_default/map_default._fence2.csv",
+                "maps/map_default/map_default._temple.csv",
+                "maps/map_default/map_default._temple2.csv",
+                "maps/map_default/map_default._cemetery.csv",
+                "maps/map_default/map_default._fence.csv",
+                "maps/map_default/map_default._bridge.csv",
+                "maps/map_default/map_default._trees.csv",
+                "maps/map_default/map_default._underground.csv",
+                "maps/map_default/map_default._houses1.csv",
+                "maps/map_default/map_default._banners.csv",
+                "maps/map_default/map_default._houses2.csv",
+                ]  # Add all layers
+OBSTACLE_LAYERS = [0,3,4,5,7,8,10,11,12,14]  # Layer 1 (second layer) will be treated as an obstacle
+BACKGROUND_PATH = 'Mainmenu/Background.jpg'
+START_BUTTON_PATH = 'Mainmenu/Start_game_button.png'
+QUIT_BUTTON_PATH = 'Mainmenu/Load_game_button.png'
+TITLE_PATH = 'Mainmenu/Title.png'
+
+# Player properties
+PLAYER_SPEED = 200
+ANIMATION_SPEED = 0.1
+
+# Map properties
+TILE_SIZE = 16
+MAP_SCALE = (SCREEN_WIDTH) / (10 * TILE_SIZE)
+SCALED_TILE_SIZE = int(TILE_SIZE * MAP_SCALE)

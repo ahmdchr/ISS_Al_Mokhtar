@@ -1,111 +1,105 @@
 import pygame
 import sys
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from player import Player
+from map import Map
+from ui import MainMenu
+from mokhtar_hero import Fighter
+from enemy_bot import Enemy
 
 pygame.init()
-
-# Screen dimensions
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 800
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Al-Mokhtar")
 
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (200, 200, 200)
-RED = (255, 0, 0)
-
-# Fonts
-font = pygame.font.Font(None, 74)
-small_font = pygame.font.Font(None, 50)
-
-# Clock for controlling frame rate
+#set framerate
 clock = pygame.time.Clock()
+FPS = 60
 
-# Load images and scale them
-def load_images(path, frames, size=(69, 69)):
-    return [pygame.transform.scale(pygame.image.load(f"{path}{i+1}.png"), size) for i in range(frames)]
+#define fighters variables
+MOD_SIZE = 162
+MOD_SCALE = 2
+MOD_OFFSET = [0, 10]
+MOD_DATA = [MOD_SIZE, MOD_SCALE,MOD_OFFSET]
+MOKHTAR_SIZE = 16.6
+MOKHTAR_SCALE = 5
+MOKHTAR_OFFSET = [0,-18]
+MOKHTAR_DATA = [MOKHTAR_SIZE,MOKHTAR_SCALE,MOKHTAR_OFFSET]
 
-image_idle_down = load_images('idle_animation/hero_down/hero_down_', 3)
-image_idle_left = load_images('idle_animation/hero_left/hero_left_', 3)
-image_idle_right = load_images('idle_animation/hero_right/hero_right_', 3)
-image_idle_up = load_images('idle_animation/hero_up/hero_up_', 3)
+#load background image
+scene_image = pygame.image.load('./Mainmenu/Background.jpg')
 
-image_run_down = load_images('run_animation/hero_down/hero_down_', 4)
-image_run_left = load_images('run_animation/hero_left/hero_left_', 4)
-image_run_right = load_images('run_animation/hero_right/hero_right_', 4)
-image_run_up = load_images('run_animation/hero_up/hero_up_', 4)
+mokhtar_images_sheet = pygame.image.load('Mokhtar_Character_1.png')
+mod_images_sheet = pygame.image.load('warrior.png')
 
-# Player properties
-player_speed = 300
-x, y = 100, 100
-direction = 0  # 0: down, 1: left, 2: right, 3: up
-current_frame = 0
-animation_speed = 0.1
-animation_timer = 0
+MOKHTAR_ANIMATION_STEPS = [3,3,3,4,4,4,1,4,1,4,1,4]
+MOD_ANIMATION_STEPS = [10,8,1,7,7,3,7]
+MOD_SPEED = 4
 
-# Button class
-class Button:
-    def __init__(self, x, y, width, height, text, font, color, hover_color):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.text = text
-        self.font = font
-        self.color = color
-        self.hover_color = hover_color
-        self.hovered = False
+def draw_screen_img():
+ scene_bg = pygame.transform.scale(scene_image,(SCREEN_WIDTH,SCREEN_HEIGHT))
+ screen.blit(scene_bg,(0,0))
 
-    def draw(self, screen):
-        if self.hovered:
-            pygame.draw.rect(screen, self.hover_color, self.rect)
-        else:
-            pygame.draw.rect(screen, self.color, self.rect)
-        
-        text_surface = self.font.render(self.text, True, BLACK)
-        text_rect = text_surface.get_rect(center=self.rect.center)
-        screen.blit(text_surface, text_rect)
+    
+def draw_health_bar(health, x, y):
+ ratio = health / 1000
+ pygame.draw.rect(screen, (255,0,0), (x,y, 400, 30))
+ pygame.draw.rect(screen, (255,255,0), (x,y, 400 * ratio, 30))
 
-    def check_hover(self, mouse_pos):
-        self.hovered = self.rect.collidepoint(mouse_pos)
+fighter = Fighter(100,400, False, MOKHTAR_DATA, mokhtar_images_sheet, MOKHTAR_ANIMATION_STEPS)
+enemy = Enemy(700,400, True, MOD_DATA, mod_images_sheet, MOD_ANIMATION_STEPS)
 
-# Create buttons
-start_button = Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 100, "Start Game", small_font, GRAY, RED)
-quit_button = Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 100, 200, 100, "Quit", small_font, GRAY, RED)
+font = pygame.font.SysFont("Arial", 36)
+text_color = (255, 255, 255)
+bg_color = (0, 0, 0)
 
-# Main menu loop
-def main_menu():
+# Create the text surface
+text = font.render("Game Over", True, text_color)
+
+# Set up the rectangle dimensions
+rect_width, rect_height = 300, 100
+rect_x = (400 - rect_width) // 2
+rect_y = (300 - rect_height) // 2
+
+def main():
+    game_map = Map()
+    player = Player(game_map)
+    main_menu = MainMenu(game_map)
+
     while True:
-        screen.fill(WHITE)
+        if main_menu_loop(screen, main_menu):
+            gameplay_loop(screen, clock, player, game_map)
+        else:
+            break
 
-        # Draw title
-        title_surface = font.render("Al-Mokhtar", True, BLACK)
-        title_rect = title_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
-        screen.blit(title_surface, title_rect)
+    pygame.quit()
+    sys.exit()
 
-        # Draw buttons
-        start_button.draw(screen)
-        quit_button.draw(screen)
+def main_menu_loop(screen, main_menu):
+    clock = pygame.time.Clock()
 
-        # Event handling
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                return False
             elif event.type == pygame.MOUSEMOTION:
                 mouse_pos = pygame.mouse.get_pos()
-                start_button.check_hover(mouse_pos)
-                quit_button.check_hover(mouse_pos)
+                main_menu.start_button.check_hover(mouse_pos)
+                main_menu.quit_button.check_hover(mouse_pos)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if start_button.hovered:
+                if main_menu.start_button.hovered:
                     return True
-                elif quit_button.hovered:
+                elif main_menu.quit_button.hovered:
+                    gameplay_loop_1(screen)
                     return False
-
+        
+        main_menu.update()  # Move the background
+        main_menu.draw(screen)
         pygame.display.flip()
+        clock.tick(60)  # Maintain 60 FPS
 
 
-#gameplay
-def gameplay():
-    global x,y,direction,current_frame,animation_timer
+
+def gameplay_loop(screen, clock, player, game_map):
     running = True
     while running:
         deltaTime = clock.tick(30) / 1000
@@ -116,54 +110,55 @@ def gameplay():
                 running = False
 
         keys = pygame.key.get_pressed()
+        player.update(deltaTime, keys)
 
-        # Handle movement and direction
-        if keys[pygame.K_LEFT] or keys[pygame.K_q]:
-            direction = 1
-            x -= player_speed * deltaTime
-        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            direction = 2
-            x += player_speed * deltaTime
-        elif keys[pygame.K_UP] or keys[pygame.K_z]:
-            direction = 3
-            y -= player_speed * deltaTime
-        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            direction = 0
-            y += player_speed * deltaTime
-
-        # Update animation frame
-        animation_timer += deltaTime
-        if animation_timer >= animation_speed:
-            animation_timer = 0
-            current_frame = (current_frame + 1) % 4  # Assuming 4 frames for running animations
-
-        # Determine which animation to play
-        if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]:
-            if direction == 0:
-                screen.blit(image_run_down[current_frame], (x, y))
-            elif direction == 1:
-                screen.blit(image_run_left[current_frame], (x, y))
-            elif direction == 2:
-                screen.blit(image_run_right[current_frame], (x, y))
-            elif direction == 3:
-                screen.blit(image_run_up[current_frame], (x, y))
-        else:
-            if direction == 0:
-                screen.blit(image_idle_down[current_frame % 3], (x, y))
-            elif direction == 1:
-                screen.blit(image_idle_left[current_frame % 3], (x, y))
-            elif direction == 2:
-                screen.blit(image_idle_right[current_frame % 3], (x, y))
-            elif direction == 3:
-                screen.blit(image_idle_up[current_frame % 3], (x, y))
+        game_map.draw(screen)
+        player.draw(screen)
 
         pygame.display.flip()
-while True:
-    if main_menu():
-        if not gameplay():
-            break
-    else:
-        break
+    sys.exit()
 
-pygame.quit()
-sys.exit()
+def gameplay_loop_1(screen):
+    running = True
+    while running:
+        clock.tick(FPS)
+
+        draw_screen_img()
+        draw_health_bar(fighter.health, 20, 20)
+        draw_health_bar(enemy.health, 580, 20)
+
+        fighter.move(SCREEN_WIDTH,SCREEN_HEIGHT,screen,enemy)
+        enemy.move(fighter)
+
+        enemy.get_target_status(fighter)
+
+        fighter.update(screen)
+        enemy.update(screen,fighter)
+        
+        fighter.draw(screen)
+        enemy.draw(screen)
+
+        if fighter.dead:
+            pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
+            pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
+    
+            text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
+            screen.blit(text, text_rect)
+                
+        if enemy.dead:
+            pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
+            pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
+        
+            text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
+            screen.blit(text, text_rect)
+  
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+               running = False
+
+        pygame.display.update()
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()
