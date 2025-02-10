@@ -16,6 +16,8 @@ SMALL_FONT = None
 TILESET_PATH = 'maps/tileset.png'
 BACKGROUND_PATH = 'Mainmenu/Background.jpg'
 START_BUTTON_PATH = 'Mainmenu/Start_game_button.png'
+START_BUTTON_HOVER_PATH = 'Mainmenu/Start_game_button_hover.png'
+QUIT_BUTTON_HOVER_PATH = 'Mainmenu/Load_game_button_hover.png'
 QUIT_BUTTON_PATH = 'Mainmenu/Load_game_button.png'
 TITLE_PATH = 'Mainmenu/Title.png'
 

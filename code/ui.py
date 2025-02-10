@@ -1,13 +1,13 @@
 import pygame
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, START_BUTTON_PATH, QUIT_BUTTON_PATH, TITLE_PATH
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, START_BUTTON_PATH, QUIT_BUTTON_PATH, TITLE_PATH, START_BUTTON_HOVER_PATH, QUIT_BUTTON_HOVER_PATH
 from map import Map
 
 class Button:
     """A class to create buttons with hover effects."""
-    def __init__(self, x, y, width, height, image_path):
+    def __init__(self, x, y, width, height, image_path, hover_image_path):
         self.rect = pygame.Rect(x, y, width, height)
         self.image = pygame.transform.scale(pygame.image.load(image_path), (width, height))
-        self.hover_image = self.image.copy()  # Same image for now, can be customized
+        self.hover_image = pygame.transform.scale(pygame.image.load(hover_image_path), (width, height))
         self.hovered = False
 
     def draw(self, screen):
@@ -29,10 +29,10 @@ class MainMenu:
 
         # Create Start and Quit buttons
         self.start_button = Button(
-            SCREEN_WIDTH // 2 - 275, SCREEN_HEIGHT // 2, 527, 133, START_BUTTON_PATH
+            SCREEN_WIDTH // 2 - 275, SCREEN_HEIGHT // 2, 527, 133, START_BUTTON_PATH, START_BUTTON_HOVER_PATH
         )
         self.quit_button = Button(
-            SCREEN_WIDTH // 2 - 275, SCREEN_HEIGHT // 2 + 200, 527, 133, QUIT_BUTTON_PATH
+            SCREEN_WIDTH // 2 - 275, SCREEN_HEIGHT // 2 + 200, 527, 133, QUIT_BUTTON_PATH, QUIT_BUTTON_HOVER_PATH
         )
 
         # Scrolling background settings

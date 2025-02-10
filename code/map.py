@@ -34,19 +34,6 @@ class Map:
                 reader = csv.reader(csvfile, delimiter=',')
                 layers.append([list(map(int, row)) for row in reader])
         return layers
-    
-    def update_camera(self, player_x, player_y):
-        """Centers the camera on the player while keeping it within map boundaries."""
-        half_screen_x = SCREEN_WIDTH // 2
-        half_screen_y = SCREEN_HEIGHT // 2
-
-        # Convert player position to tile coordinates
-        tile_x = int(player_x // SCALED_TILE_SIZE)
-        tile_y = int(player_y // SCALED_TILE_SIZE)
-
-        # Update camera position
-        self.camera_x = max(0, min(tile_x - self.visible_width // 2, len(self.map_layers[0][0]) - self.visible_width))
-        self.camera_y = max(0, min(tile_y - self.visible_height // 2, len(self.map_layers[0]) - self.visible_height))
 
     def draw(self, screen, x_offset=0, y_offset=0):
         """Draws the visible part of the map based on the camera position."""
@@ -73,12 +60,3 @@ class Map:
             if self.map_layers[index][int(y)][int(x)] != -1:  # If there's a tile, it's an obstacle
                 return True
         return False
-
-    def move_camera(self, dx, dy):
-        """Moves the camera within the allowed map boundaries, avoiding obstacles."""
-        new_x = self.camera_x + dx
-        new_y = self.camera_y + dy
-        
-        if not self.is_obstacle(new_x, new_y):
-            self.camera_x = max(0, min(new_x, len(self.map_layers[0][0]) - self.visible_width))
-            self.camera_y = max(0, min(new_y, len(self.map_layers[0]) - self.visible_height))
