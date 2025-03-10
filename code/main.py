@@ -4,6 +4,7 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from player import Player
 from map import Map
 from ui import MainMenu
+import random
 
 def main():
     """Initialize the game and handle the main menu and gameplay loops."""
@@ -41,6 +42,7 @@ def main_menu_loop(screen, main_menu):
                 main_menu.quit_button.check_hover(mouse_pos)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if main_menu.start_button.hovered:
+                    pixel_fade_transition(screen, main_menu)
                     return True  # Start game
                 elif main_menu.quit_button.hovered:
                     return False  # Quit game
@@ -70,6 +72,40 @@ def gameplay_loop(screen, clock, player, game_map):
         pygame.display.flip()  # Refresh the screen
     
     sys.exit()
+
+def pixel_fade_transition(screen, main_menu, block_size=20, duration=1000):
+    """Creates a pixelated fade-out effect before transitioning to the game."""
+    clock = pygame.time.Clock()
+    start_time = pygame.time.get_ticks()
+    
+    cols = SCREEN_WIDTH // block_size
+    rows = SCREEN_HEIGHT // block_size
+
+    # Create a shuffled list of pixel positions
+    pixels = [(x * block_size, y * block_size) for y in range(rows) for x in range(cols)]
+    random.shuffle(pixels)
+
+    while True:
+        elapsed_time = pygame.time.get_ticks() - start_time
+        progress = elapsed_time / duration
+
+        if progress >= 1:
+            break  # End transition
+
+        screen.fill((0, 0, 0))  # Clear screen
+        main_menu.draw(screen)  # Draw the menu before applying the effect
+
+        # Calculate how many pixels should be black
+        num_pixels = int(len(pixels) * progress)
+
+        # Draw black squares over the menu
+        for i in range(num_pixels):
+            x, y = pixels[i]
+            pygame.draw.rect(screen, (0, 0, 0), (x, y, block_size, block_size))
+
+        pygame.display.flip()
+        clock.tick(60)
+
 
 if __name__ == "__main__":
     main()
