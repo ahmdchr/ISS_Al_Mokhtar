@@ -16,6 +16,11 @@ class Map:
         # Camera position
         self.camera_x = 0
         self.camera_y = 0
+    
+    def update_camera(self, player):
+        """Update the camera position based on the player's position."""
+        self.camera_x = max(0, min(player.x - SCREEN_WIDTH // 2, self.visible_width * SCALED_TILE_SIZE - SCREEN_WIDTH))
+        self.camera_y = max(0, min(player.y - SCREEN_HEIGHT // 2, self.visible_height * SCALED_TILE_SIZE - SCREEN_HEIGHT))
 
     def load_tiles(self):
         """Extracts individual tiles from the tileset image."""
@@ -40,15 +45,15 @@ class Map:
         for layer in self.map_layers:
             for y in range(self.visible_height):
                 for x in range(self.visible_width):
-                    map_x = x + self.camera_x
-                    map_y = y + self.camera_y
+                    map_x = int(x + self.camera_x // SCALED_TILE_SIZE)  # Convert camera position to tile grid position
+                    map_y = int(y + self.camera_y // SCALED_TILE_SIZE)
 
                     if 0 <= map_y < len(layer) and 0 <= map_x < len(layer[0]):
                         tile = layer[map_y][map_x]
                         if tile != -1:
                             screen.blit(
                                 pygame.transform.scale(self.tiles[tile], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
-                                (x * SCALED_TILE_SIZE + x_offset, y * SCALED_TILE_SIZE + y_offset)
+                                (x * SCALED_TILE_SIZE - self.camera_x + x_offset, y * SCALED_TILE_SIZE - self.camera_y + y_offset)
                             )
 
     def is_obstacle(self, x, y):

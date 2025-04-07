@@ -18,7 +18,7 @@ FPS = 60
 #define fighters variables
 MOD_SIZE = 162
 MOD_SCALE = 2
-MOD_OFFSET = [0, 10]
+MOD_OFFSET = [55, 10]
 MOD_DATA = [MOD_SIZE, MOD_SCALE,MOD_OFFSET]
 MOKHTAR_SIZE = 16.6
 MOKHTAR_SCALE = 5
@@ -31,7 +31,7 @@ scene_image = pygame.image.load('./Mainmenu/Background.jpg')
 mokhtar_images_sheet = pygame.image.load('Mokhtar_Character_1.png')
 mod_images_sheet = pygame.image.load('warrior.png')
 
-MOKHTAR_ANIMATION_STEPS = [3,3,3,4,4,4,1,4,1,4,1,4]
+MOKHTAR_ANIMATION_STEPS = [3,3,3,4,4,4,1,1,1,1,1,1]
 MOD_ANIMATION_STEPS = [10,8,1,7,7,3,7]
 MOD_SPEED = 4
 
@@ -93,7 +93,7 @@ def gameplay_loop(screen, clock, player, game_map):
 
         game_map.draw(screen)  # Draw the map
         player.draw(screen)  # Draw the player
-
+       
         pygame.display.flip()  # Refresh the screen
     
     sys.exit()
@@ -103,7 +103,7 @@ def draw_screen_img():
  screen.blit(scene_bg,(0,0))
 
 def draw_health_bar(health, x, y):
- ratio = health / 1000
+ ratio = health / 100
  pygame.draw.rect(screen, (255,0,0), (x,y, 400, 30))
  pygame.draw.rect(screen, (255,255,0), (x,y, 400 * ratio, 30))
 
@@ -124,6 +124,7 @@ rect_y = (300 - rect_height) // 2
 
 def gameplay_loop_1(screen):
     running = True
+
     while running:
         clock.tick(FPS)
 
@@ -136,30 +137,30 @@ def gameplay_loop_1(screen):
 
         enemy.get_target_status(fighter)
 
-        fighter.update(screen)
+        fighter.update(screen,enemy)
         enemy.update(screen,fighter)
         
         fighter.draw(screen)
         enemy.draw(screen)
 
-        if fighter.dead:
-            pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
-            pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
+        #if fighter.dead:
+        #   pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
+        #    pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
     
-            text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
-            screen.blit(text, text_rect)
+        #   text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
+        #    screen.blit(text, text_rect)
                 
-        if enemy.dead:
-            pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
-            pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
+        #if enemy.dead:
+        #   pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
+        #    pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
         
-            text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
-            screen.blit(text, text_rect)
+        #    text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
+        #    screen.blit(text, text_rect)
   
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                running = False
-
+        
         pygame.display.update()
     pygame.quit()
 
