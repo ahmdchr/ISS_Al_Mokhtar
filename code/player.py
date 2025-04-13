@@ -66,7 +66,6 @@ class Player:
             if self.can_move(new_x, new_y):
                 self.x, self.y = new_x, new_y
 
-
         self.animation_timer += delta_time
         if self.animation_timer >= self.animation_speed:
             self.animation_timer = 0
@@ -78,11 +77,11 @@ class Player:
         direction = directions[self.direction]
         
         if self.attacking:
-            screen.blit(self.image_attack[direction][self.current_frame], (self.x, self.y))
+            screen.blit(self.image_attack[direction][self.current_frame], (self.x - self.map.camera_x, self.y - self.map.camera_y))
         else:
             keys = pygame.key.get_pressed()
             if any([keys[pygame.K_LEFT], keys[pygame.K_q], keys[pygame.K_RIGHT], keys[pygame.K_d], 
                     keys[pygame.K_UP], keys[pygame.K_z], keys[pygame.K_DOWN], keys[pygame.K_s]]):
-                screen.blit(self.image_run[direction][self.current_frame], (self.x, self.y))
+                screen.blit(self.image_run[direction][self.current_frame], (self.x - self.map.camera_x, self.y - self.map.camera_y))
             else:
-                screen.blit(self.image_idle[direction][self.current_frame % 3], (self.x, self.y))
+                screen.blit(self.image_idle[direction][self.current_frame % 3], (self.x - self.map.camera_x, self.y - self.map.camera_y))

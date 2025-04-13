@@ -1,22 +1,27 @@
 import pygame
 import sys
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT,HEART_IMAGE_PATH
 from player import Player
 from map import Map
 from ui import MainMenu
+import random
+from ui import MainMenu, HealthBar  # Import HealthBar
 
 def main():
-    """Initialize the game and handle the main menu and gameplay loops."""
+    pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Al-Mokhtar")
+    clock = pygame.time.Clock()
 
     # Create game objects
     game_map = Map()
     player = Player(game_map)
     main_menu = MainMenu(game_map)
+    health_bar = HealthBar(max_health=5, heart_image_path=HEART_IMAGE_PATH)  # Example: 5 hearts
 
-    # Run the main menu; start game if selected, otherwise exit
     while True:
         if main_menu_loop(screen, main_menu):
-            gameplay_loop(screen, clock, player, game_map)
+            gameplay_loop(screen, clock, player, game_map, health_bar)
         else:
             break
 
@@ -40,7 +45,6 @@ def main_menu_loop(screen, main_menu):
                     pixel_fade_transition(screen, main_menu)
                     return True  # Start game
                 elif main_menu.quit_button.hovered:
-                    gameplay_loop_1(screen)
                     return False  # Quit game
 
         main_menu.update()  # Move the background animation
@@ -48,7 +52,7 @@ def main_menu_loop(screen, main_menu):
         pygame.display.flip()
         clock.tick(60)  # Maintain 60 FPS
 
-def gameplay_loop(screen, clock, player, game_map):
+def gameplay_loop(screen, clock, player, game_map, health_bar):
     """Run the main gameplay loop, handling player movement and game updates."""
     running = True
     while running:
@@ -62,12 +66,11 @@ def gameplay_loop(screen, clock, player, game_map):
         keys = pygame.key.get_pressed()
         player.update(deltaTime, keys)  # Update player state
 
-        game_map.draw(screen)  # Draw the map
+        game_map.draw(screen, player=player)  # Draw the map with the camera centered on the player
         player.draw(screen)  # Draw the player
+        health_bar.draw(screen)
 
         pygame.display.flip()  # Refresh the screen
-    
-    sys.exit()
 
 def pixel_fade_transition(screen, main_menu, block_size=20, duration=1000):
     """Creates a pixelated fade-out effect before transitioning to the game."""

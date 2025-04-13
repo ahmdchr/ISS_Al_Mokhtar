@@ -21,6 +21,26 @@ class Button:
         """Check if the mouse is hovering over the button."""
         self.hovered = self.rect.collidepoint(mouse_pos)
 
+class HealthBar:
+    """Displays hearts as a health bar in the top right corner."""
+    def __init__(self, max_health, heart_image_path):
+        self.max_health = max_health
+        self.current_health = max_health
+        self.heart_image = pygame.image.load(heart_image_path)
+        self.heart_image = pygame.transform.scale(self.heart_image, (48, 69))  # Adjust heart size
+
+    def draw(self, screen):
+        """Draws the heart-based health bar."""
+        x_offset = SCREEN_WIDTH - (self.current_health * 50) - 10  # Align to top-right
+        y_offset = 10  # Small margin from the top
+
+        for i in range(self.current_health):
+            screen.blit(self.heart_image, (x_offset + i * 50, y_offset))  # Space out hearts
+
+    def update_health(self, new_health):
+        """Updates the displayed health value."""
+        self.current_health = max(0, min(new_health, self.max_health))  # Keep health within range
+
 class MainMenu:
     """The main menu of the game with a scrolling background map."""
     def __init__(self, game_map):
@@ -73,7 +93,7 @@ class MainMenu:
 
     def draw(self, screen):
         """Draw the menu, including the scrolling background and buttons."""
-        self.map.draw(screen, -self.offset_x, -self.offset_y)  # Draw the map with offset
+        self.map.draw(screen, self.offset_x, self.offset_y)  # Draw the map with offset
 
         # Draw the title
         title_rect = self.title_image.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))

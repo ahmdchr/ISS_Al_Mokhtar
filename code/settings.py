@@ -20,7 +20,7 @@ START_BUTTON_HOVER_PATH = 'Mainmenu/Start_game_button_hover.png'
 QUIT_BUTTON_HOVER_PATH = 'Mainmenu/Load_game_button_hover.png'
 QUIT_BUTTON_PATH = 'Mainmenu/Load_game_button.png'
 TITLE_PATH = 'Mainmenu/Title.png'
-
+HEART_IMAGE_PATH = 'health/heart.png'
 # Map CSV Paths
 MAP_CSV_PATHS = [
     "maps/map_default/map_default._no-stepping1.csv",

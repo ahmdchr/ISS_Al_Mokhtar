@@ -35,20 +35,33 @@ class Map:
                 layers.append([list(map(int, row)) for row in reader])
         return layers
 
-    def draw(self, screen, x_offset=0, y_offset=0):
+    def draw(self, screen, offset_x=0, offset_y=0, player=None):
         """Draws the visible part of the map based on the camera position."""
+        if player is not None:
+            # Center the camera on the player
+            self.camera_x = player.x - SCREEN_WIDTH // 2
+            self.camera_y = player.y - SCREEN_HEIGHT // 2
+
+            # Ensure the camera doesn't go out of bounds
+            self.camera_x = max(0, min(self.camera_x, self.visible_width * SCALED_TILE_SIZE - SCREEN_WIDTH))
+            self.camera_y = max(0, min(self.camera_y, self.visible_height * SCALED_TILE_SIZE - SCREEN_HEIGHT))
+        else:
+            # Use the provided offsets for scrolling
+            self.camera_x = offset_x
+            self.camera_y = offset_y
+
         for layer in self.map_layers:
             for y in range(self.visible_height):
                 for x in range(self.visible_width):
-                    map_x = x + self.camera_x
-                    map_y = y + self.camera_y
+                    map_x = x * SCALED_TILE_SIZE - self.camera_x
+                    map_y = y * SCALED_TILE_SIZE - self.camera_y
 
-                    if 0 <= map_y < len(layer) and 0 <= map_x < len(layer[0]):
-                        tile = layer[map_y][map_x]
+                    if 0 <= map_y < SCREEN_HEIGHT and 0 <= map_x < SCREEN_WIDTH:
+                        tile = layer[y][x]
                         if tile != -1:
                             screen.blit(
                                 pygame.transform.scale(self.tiles[tile], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
-                                (x * SCALED_TILE_SIZE + x_offset, y * SCALED_TILE_SIZE + y_offset)
+                                (map_x, map_y)
                             )
 
     def is_obstacle(self, x, y):
