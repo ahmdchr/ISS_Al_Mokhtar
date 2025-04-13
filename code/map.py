@@ -66,7 +66,7 @@ class Map:
                         if tile != -1:
                             screen.blit(
                                 pygame.transform.scale(self.tiles[tile], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
-                                (x * SCALED_TILE_SIZE - self.camera_x + x_offset, y * SCALED_TILE_SIZE - self.camera_y + y_offset)
+                                (x * SCALED_TILE_SIZE - self.camera_x + map_x, y * SCALED_TILE_SIZE - self.camera_y + map_y)
                             )
 
     def is_obstacle(self, x, y):

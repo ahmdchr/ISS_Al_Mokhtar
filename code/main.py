@@ -1,7 +1,5 @@
 import pygame
 import sys
-from code.mokhtar_hero import Fighter
-from code.enemy_bot import Enemy
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT,HEART_IMAGE_PATH
 from player import Player
 from map import Map
@@ -109,9 +107,6 @@ def draw_health_bar(health, x, y):
  pygame.draw.rect(screen, (255,0,0), (x,y, 400, 30))
  pygame.draw.rect(screen, (255,255,0), (x,y, 400 * ratio, 30))
 
-fighter = Fighter(100,400, False, MOKHTAR_DATA, mokhtar_images_sheet, MOKHTAR_ANIMATION_STEPS)
-enemy = Enemy(700,400, True, MOD_DATA, mod_images_sheet, MOD_ANIMATION_STEPS)
-
 font = pygame.font.SysFont("Arial", 36)
 text_color = (255, 255, 255)
 bg_color = (0, 0, 0)
@@ -124,46 +119,39 @@ rect_width, rect_height = 300, 100
 rect_x = (400 - rect_width) // 2
 rect_y = (300 - rect_height) // 2
 
-def gameplay_loop_1(screen):
-    running = True
-    while running:
-        clock.tick(FPS)
-
-        draw_screen_img()
-        draw_health_bar(fighter.health, 20, 20)
-        draw_health_bar(enemy.health, 580, 20)
-
-        fighter.move(SCREEN_WIDTH,SCREEN_HEIGHT,screen,enemy)
-        enemy.move(fighter)
-
-        enemy.get_target_status(fighter)
-
-        fighter.update(screen)
-        enemy.update(screen,fighter)
-        
-        fighter.draw(screen)
-        enemy.draw(screen)
-
-        if fighter.dead:
-            pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
-            pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
+def pixel_fade_transition(screen, main_menu, block_size=20, duration=1000):
+    """Creates a pixelated fade-out effect before transitioning to the game."""
+    clock = pygame.time.Clock()
+    start_time = pygame.time.get_ticks()
     
-            text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
-            screen.blit(text, text_rect)
-                
-        if enemy.dead:
-            pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
-            pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
-        
-            text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
-            screen.blit(text, text_rect)
-  
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-               running = False
+    cols = SCREEN_WIDTH // block_size
+    rows = SCREEN_HEIGHT // block_size
 
-        pygame.display.update()
-    pygame.quit()
+    # Create a shuffled list of pixel positions
+    pixels = [(x * block_size, y * block_size) for y in range(rows) for x in range(cols)]
+    random.shuffle(pixels)
+
+    while True:
+        elapsed_time = pygame.time.get_ticks() - start_time
+        progress = elapsed_time / duration
+
+        if progress >= 1:
+            break  # End transition
+
+        screen.fill((0, 0, 0))  # Clear screen
+        main_menu.draw(screen)  # Draw the menu before applying the effect
+
+        # Calculate how many pixels should be black
+        num_pixels = int(len(pixels) * progress)
+
+        # Draw black squares over the menu
+        for i in range(num_pixels):
+            x, y = pixels[i]
+            pygame.draw.rect(screen, (0, 0, 0), (x, y, block_size, block_size))
+
+        pygame.display.flip()
+        clock.tick(60)
+
 
 if __name__ == "__main__":
     main()
