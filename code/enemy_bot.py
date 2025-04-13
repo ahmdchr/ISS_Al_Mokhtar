@@ -5,7 +5,7 @@ class Enemy():
         self.size = data[0]
         self.image_scale = data[1]
         self.offset = data[2]
-        self.rect = pygame.Rect((x,y, 80,180))
+        self.rect = pygame.Rect(x,y, 80,180)
         self.update_time = pygame.time.get_ticks()
         self.Flip = flip
         self.action = 0 
@@ -19,7 +19,7 @@ class Enemy():
         self.moving_right = False
         self.moving_left = False
         self.dead = False
-        self.health = 1000
+        self.health = 100
 
     def load_images(self, images_sheet, animation_steps):
         animation_list = []
@@ -32,22 +32,24 @@ class Enemy():
         return animation_list
 
     def get_target_status(self,target):
-        # ensure players face each other 
-        if (target.rect.x - self.rect.x >= -20) and not self.dead: 
+        # ensure bot only attacks when target is nearby 
+        if not self.dead and (self.rect.x - target.rect.x <= 100) and (self.rect.x - target.rect.x >=0) and (target.rect.centerx < self.rect.centerx): 
             self.attack_move = True
-        else: 
-            self.attack_move = False
-
-        if target.rect.centerx - self.rect.centerx <= 100:
-                self.Flip = True
+        if not self.dead and (target.rect.x - self.rect.x <= 100) and (target.rect.x - self.rect.x >=0) and (target.rect.centerx > self.rect.centerx): 
+            self.attack_move = True
+        
+        # ensure players face each other 
+        if (target.rect.x <= self.rect.x):
+            self.Flip = True
         else:
-                self.Flip = False
+            self.Flip = False
 
     def update(self,screen,target):
-        animation_cooldown = 350
-        if self.health == 0:
-            self.dead = True
-            self.attack_move = False
+        animation_cooldown = 300
+        
+        # if self.health == 0:
+        #     self.dead = True
+        #     self.attack_move = False
         if self.attack_move == True and target.attacking == True:
            self.update_action(4)
            self.attack(screen,target)
@@ -68,22 +70,23 @@ class Enemy():
             if self.frame_index >= len(self.animation_list[self.action]):
                 self.frame_index = 0
 
+    # AI bot follows the player
     def move(self,target):
         SPEED = 3
-        # AI bot follows the player
         # Calculate direction from the bot to the player
         dx = target.rect.x - self.rect.x
         dy = target.rect.y - self.rect.y
         distance = math.sqrt(dx**2 + dy**2)  # Euclidean distance
 
-        # Normalize the direction vector to keep speed consistent
-        if distance != 0:
-            dx /= distance
-            dy /= distance
-
-        # Move the bot towards the player
-        self.rect.x += dx * SPEED
-        self.rect.y += dy * SPEED
+        # Keep a small distance between the player and the bot
+        if distance > 93:
+             dx /= distance
+             dy /= distance
+             self.rect.x += dx*SPEED
+             self.rect.y += dy*SPEED
+        else:   
+            # if the bot reached the target, we maintain the same position.
+            pass
 
     def update_action(self,new_action):
         if new_action != self.action:
@@ -92,10 +95,26 @@ class Enemy():
             self.update_time = pygame.time.get_ticks()
 
     def draw(self,surface):
+        pygame.draw.rect(surface, (0,100,100), self.rect)
         img = pygame.transform.flip(self.image, self.Flip , False)
         surface.blit(img, (self.rect.x - (self.offset[0]* self.image_scale),self.rect.y - (self.offset[1]* self.image_scale)))
 
     def attack(self,surface,target):
-        attacking_rect = pygame.Rect(self.rect.centerx - (self.rect.width * self.Flip), self.rect.y, self.rect.width-30, self.rect.height)
-        if attacking_rect.colliderect(target.rect):
-            target.health -= 5
+        # attacking_rect = pygame.Rect(self.rect.centerx - (self.rect.width * self.Flip), self.rect.y, self.rect.width-30, self.rect.height)
+        # attacking_rect_1 = pygame.Rect(self.rect.x - 100, self.rect.y, self.rect.width, self.rect.height)
+        animation_cooldown = 500
+        if self.Flip:
+            attacking_rect_2 = pygame.Rect(self.rect.centerx - 110, self.rect.y + 30, self.rect.width - 10, self.rect.height - 30)
+        else:
+            attacking_rect_2 = pygame.Rect(self.rect.centerx + 40, self.rect.y + 30, self.rect.width - 10, self.rect.height - 30)
+
+        # pygame.draw.rect(surface,(0,0,255),attacking_rect_2)
+        # if attacking_rect_1.colliderect(target.rect):
+        #     target.health -= 0
+        #     pygame.draw.rect(surface,(0,0,255),attacking_rect_1)
+        if attacking_rect_2.colliderect(target.rect):
+            target.health -= 10
+            # pygame.draw.rect(surface,(0,0,255),attacking_rect_2)
+
+       
+        

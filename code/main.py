@@ -7,11 +7,36 @@ from ui import MainMenu
 import random
 from ui import MainMenu, HealthBar  # Import HealthBar
 
+pygame.init()
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Al-Mokhtar")
+
+#set framerate
+clock = pygame.time.Clock()
+FPS = 60
+
+#define fighters variables
+MOD_SIZE = 162
+MOD_SCALE = 2
+MOD_OFFSET = [0, 10]
+MOD_DATA = [MOD_SIZE, MOD_SCALE,MOD_OFFSET]
+MOKHTAR_SIZE = 16.6
+MOKHTAR_SCALE = 5
+MOKHTAR_OFFSET = [0,-18]
+MOKHTAR_DATA = [MOKHTAR_SIZE,MOKHTAR_SCALE,MOKHTAR_OFFSET]
+
+#load background image
+scene_image = pygame.image.load('./Mainmenu/Background.jpg')
+
+mokhtar_images_sheet = pygame.image.load('Mokhtar_Character_1.png')
+mod_images_sheet = pygame.image.load('warrior.png')
+
+MOKHTAR_ANIMATION_STEPS = [3,3,3,4,4,4,1,4,1,4,1,4]
+MOD_ANIMATION_STEPS = [10,8,1,7,7,3,7]
+MOD_SPEED = 4
+
 def main():
-    pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Al-Mokhtar")
-    clock = pygame.time.Clock()
+    """Initialize the game and handle the main menu and gameplay loops."""
 
     # Create game objects
     game_map = Map()
@@ -68,43 +93,75 @@ def gameplay_loop(screen, clock, player, game_map, health_bar):
 
         game_map.draw(screen, player=player)  # Draw the map with the camera centered on the player
         player.draw(screen)  # Draw the player
-        health_bar.draw(screen)
 
         pygame.display.flip()  # Refresh the screen
-
-def pixel_fade_transition(screen, main_menu, block_size=20, duration=1000):
-    """Creates a pixelated fade-out effect before transitioning to the game."""
-    clock = pygame.time.Clock()
-    start_time = pygame.time.get_ticks()
     
-    cols = SCREEN_WIDTH // block_size
-    rows = SCREEN_HEIGHT // block_size
+    sys.exit()
 
-    # Create a shuffled list of pixel positions
-    pixels = [(x * block_size, y * block_size) for y in range(rows) for x in range(cols)]
-    random.shuffle(pixels)
+def draw_screen_img():
+ scene_bg = pygame.transform.scale(scene_image,(SCREEN_WIDTH,SCREEN_HEIGHT))
+ screen.blit(scene_bg,(0,0))
 
-    while True:
-        elapsed_time = pygame.time.get_ticks() - start_time
-        progress = elapsed_time / duration
+def draw_health_bar(health, x, y):
+ ratio = health / 1000
+ pygame.draw.rect(screen, (255,0,0), (x,y, 400, 30))
+ pygame.draw.rect(screen, (255,255,0), (x,y, 400 * ratio, 30))
 
-        if progress >= 1:
-            break  # End transition
+fighter = Fighter(100,400, False, MOKHTAR_DATA, mokhtar_images_sheet, MOKHTAR_ANIMATION_STEPS)
+enemy = Enemy(700,400, True, MOD_DATA, mod_images_sheet, MOD_ANIMATION_STEPS)
 
-        screen.fill((0, 0, 0))  # Clear screen
-        main_menu.draw(screen)  # Draw the menu before applying the effect
+font = pygame.font.SysFont("Arial", 36)
+text_color = (255, 255, 255)
+bg_color = (0, 0, 0)
 
-        # Calculate how many pixels should be black
-        num_pixels = int(len(pixels) * progress)
+# Create the text surface
+text = font.render("Game Over", True, text_color)
 
-        # Draw black squares over the menu
-        for i in range(num_pixels):
-            x, y = pixels[i]
-            pygame.draw.rect(screen, (0, 0, 0), (x, y, block_size, block_size))
+# Set up the rectangle dimensions
+rect_width, rect_height = 300, 100
+rect_x = (400 - rect_width) // 2
+rect_y = (300 - rect_height) // 2
 
-        pygame.display.flip()
-        clock.tick(60)
+def gameplay_loop_1(screen):
+    running = True
+    while running:
+        clock.tick(FPS)
 
+        draw_screen_img()
+        draw_health_bar(fighter.health, 20, 20)
+        draw_health_bar(enemy.health, 580, 20)
+
+        fighter.move(SCREEN_WIDTH,SCREEN_HEIGHT,screen,enemy)
+        enemy.move(fighter)
+
+        enemy.get_target_status(fighter)
+
+        fighter.update(screen)
+        enemy.update(screen,fighter)
+        
+        fighter.draw(screen)
+        enemy.draw(screen)
+
+        if fighter.dead:
+            pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
+            pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
+    
+            text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
+            screen.blit(text, text_rect)
+                
+        if enemy.dead:
+            pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, rect_width, rect_height))
+            pygame.draw.rect(screen, (255, 255, 255), (rect_x, rect_y, rect_width, rect_height), 5)  
+        
+            text_rect = text.get_rect(center=(rect_x + rect_width // 2, rect_y + rect_height // 2))
+            screen.blit(text, text_rect)
+  
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+               running = False
+
+        pygame.display.update()
+    pygame.quit()
 
 if __name__ == "__main__":
     main()
