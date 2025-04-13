@@ -4,14 +4,9 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from player import Player
 from map import Map
 from ui import MainMenu
-import random
 
 def main():
     """Initialize the game and handle the main menu and gameplay loops."""
-    pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Al-Mokhtar")
-    clock = pygame.time.Clock()
 
     # Create game objects
     game_map = Map()
@@ -45,6 +40,7 @@ def main_menu_loop(screen, main_menu):
                     pixel_fade_transition(screen, main_menu)
                     return True  # Start game
                 elif main_menu.quit_button.hovered:
+                    gameplay_loop_1(screen)
                     return False  # Quit game
 
         main_menu.update()  # Move the background animation
