@@ -1,5 +1,7 @@
 import pygame
 import sys
+from code.mokhtar_hero import Fighter
+from code.enemy_bot import Enemy
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT,HEART_IMAGE_PATH
 from player import Player
 from map import Map

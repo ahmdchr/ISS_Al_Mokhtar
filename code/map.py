@@ -58,24 +58,15 @@ class Map:
         for layer in self.map_layers:
             for y in range(self.visible_height):
                 for x in range(self.visible_width):
-<<<<<<< HEAD
-                    map_x = x * SCALED_TILE_SIZE - self.camera_x
-                    map_y = y * SCALED_TILE_SIZE - self.camera_y
-=======
                     map_x = int(x + self.camera_x // SCALED_TILE_SIZE)  # Convert camera position to tile grid position
                     map_y = int(y + self.camera_y // SCALED_TILE_SIZE)
->>>>>>> c07de560acc9060d3cfe0501b56eb625cb63cb81
 
                     if 0 <= map_y < SCREEN_HEIGHT and 0 <= map_x < SCREEN_WIDTH:
                         tile = layer[y][x]
                         if tile != -1:
                             screen.blit(
                                 pygame.transform.scale(self.tiles[tile], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
-<<<<<<< HEAD
-                                (map_x, map_y)
-=======
                                 (x * SCALED_TILE_SIZE - self.camera_x + x_offset, y * SCALED_TILE_SIZE - self.camera_y + y_offset)
->>>>>>> c07de560acc9060d3cfe0501b56eb625cb63cb81
                             )
 
     def is_obstacle(self, x, y):

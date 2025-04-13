@@ -65,10 +65,7 @@ class Player:
 
             if self.can_move(new_x, new_y):
                 self.x, self.y = new_x, new_y
-<<<<<<< HEAD
-=======
                 self.map.update_camera(self)
->>>>>>> c07de560acc9060d3cfe0501b56eb625cb63cb81
 
         self.animation_timer += delta_time
         if self.animation_timer >= self.animation_speed:
