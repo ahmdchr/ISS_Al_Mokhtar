@@ -6,6 +6,7 @@ from map import Map
 from ui import MainMenu
 import random
 from ui import MainMenu, HealthBar  # Import HealthBar
+from cutscene import Cutscene
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -37,15 +38,41 @@ MOD_SPEED = 4
 
 def main():
     """Initialize the game and handle the main menu and gameplay loops."""
-
     # Create game objects
     game_map = Map()
     player = Player(game_map)
     main_menu = MainMenu(game_map)
-    health_bar = HealthBar(max_health=5, heart_image_path=HEART_IMAGE_PATH)  # Example: 5 hearts
+    health_bar = HealthBar(max_health=5, heart_image_path=HEART_IMAGE_PATH)
+    cutscene = Cutscene(game_map)  # Create cutscene object
 
     while True:
         if main_menu_loop(screen, main_menu):
+            # Start the cutscene after main menu
+            cutscene.start()
+            cutscene_finished = False
+            
+            # Cutscene loop
+            while not cutscene_finished and cutscene.is_playing:
+                clock = pygame.time.Clock()
+                deltaTime = clock.tick(30) / 1000  # Convert milliseconds to seconds
+                screen.fill((0, 0, 0))
+                
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            # Allow skipping cutscene with spacebar
+                            cutscene_finished = True
+                
+                # Update and draw cutscene
+                cutscene_finished = cutscene.update(deltaTime)
+                cutscene.draw(screen)
+                
+                pygame.display.flip()
+            
+            # Start normal gameplay after cutscene
             gameplay_loop(screen, clock, player, game_map, health_bar)
         else:
             break
