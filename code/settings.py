@@ -2,12 +2,13 @@
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 811
 
-
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
+BROWN = (139, 69, 19)
 RED = (255, 0, 0)
+BEIGE = (200, 150, 105)
 
 # Fonts (initialized in main.py)
 FONT = None
@@ -42,6 +43,7 @@ MAP_CSV_PATHS = [
 ]
 
 # Layers that act as obstacles
+OBSTACLE_LAYERS = []
 OBSTACLE_LAYERS = [0, 3, 4, 5, 7, 8, 10, 11, 12, 14]
 
 # Player properties
