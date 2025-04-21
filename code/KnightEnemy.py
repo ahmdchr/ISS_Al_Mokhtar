@@ -60,10 +60,10 @@ class KnightEnemy(Enemy):
         self.attack_frames = [
             pygame.transform.scale(pygame.image.load(path), (64, 64))
             for path in [
-                'knight_run/knight_run_left/knight_run_left_1.png',
-                'knight_run/knight_run_left/knight_run_left_2.png',
-                'knight_run/knight_run_left/knight_run_left_3.png',
-                'knight_run/knight_run_left/knight_run_left_4.png'
+                'knight_attack/knight_attack_left/knight_attack_left_1.png',
+                'knight_attack/knight_attack_left/knight_attack_left_2.png',
+                'knight_attack/knight_attack_left/knight_attack_left_3.png',
+                'knight_attack/knight_attack_left/knight_attack_left_4.png'
             ]
         ]
         
