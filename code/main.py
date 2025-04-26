@@ -270,12 +270,8 @@ def pixel_fade_transition(screen, main_menu, block_size=20, duration=1000):
         if progress >= 1:
             break  # End transition
 
-        screen.fill((0, 0, 0))  # Clear screen
-        main_menu.draw(screen)  # Draw the menu before applying the effect
-
-        # Calculate how many pixels should be black
-        num_pixels = int(len(pixels) * progress)
-
+        screen.fill((0, 0, 0))
+        main_menu.draw(screen)
         # Draw black squares over the menu
         for i in range(num_pixels):
             x, y = pixels[i]
