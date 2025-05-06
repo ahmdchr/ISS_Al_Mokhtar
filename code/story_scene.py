@@ -13,7 +13,7 @@ class StoryScene:
         self.sister = sister_character
         self.game_map = game_map
         self.dialogue_system = DialogueSystem()
-        self.scene_manager = SceneManager(self.dialogue_system)
+        self.scene_manager = SceneManager(self.dialogue_system,screen,game_map)
 
         self.show_player = False
         self.show_sister = False

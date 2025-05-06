@@ -37,8 +37,8 @@ def main():
 
     while True:
         if main_menu_loop(screen, main_menu):
-            cutscene.start()
-            cutscene_loop(cutscene)
+            # cutscene.start()
+            # cutscene_loop(cutscene)
             gameplay_loop(screen, clock, game_map, character)
         else:
             break
@@ -92,6 +92,7 @@ def gameplay_loop(screen, clock, game_map, character):
     player = Player(game_map)
     story_scene = StoryScene(screen, player, character, game_map)
 
+
     knights = []
     knight_positions = [(300, 300), (800, 300), (300, 600), (800, 600), (300, 900), (800, 900)]
     for i, pos in enumerate(knight_positions):
@@ -102,6 +103,8 @@ def gameplay_loop(screen, clock, game_map, character):
 
     while running:
         delta_time = clock.tick(FPS) / 1000
+        story_scene.scene_manager.update()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -187,4 +190,3 @@ def pixel_fade_transition(screen, main_menu, block_size=20, duration=1000):
 
 if __name__ == "__main__":
     main()
-z

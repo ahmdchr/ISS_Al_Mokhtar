@@ -22,6 +22,7 @@ def get_intro_scene(player, sister, dialogues):
 
         {'type': 'dialogue', 'text': [dialogues[3]], 'duration': 3000},
         {'type': 'dialogue', 'text': [dialogues[4]], 'duration': 3000},
+        {'type': 'cutscene', 'duration': 1000},
 
         {'type': 'move', 'character': sister, 'target': [572, 270], 'speed': 2, 'duration': 500},
         {'type': 'move', 'character': sister, 'target': [550, 285], 'speed': 2, 'duration': 500},

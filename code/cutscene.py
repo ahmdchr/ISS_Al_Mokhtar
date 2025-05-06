@@ -1,12 +1,9 @@
-### Refactored cutscene.py
-# Clean fire/knight coordination, modular update loop, improved drawing logic
-
 import pygame
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, SCALED_TILE_SIZE
 from Fire import Fire
 
 class Knight:
-    def __init__(self, x, y, run_images, idle_images, knight_id):
+    def __init__(self, x, y, run_images, idle_images, knight_id, attack_images=None):
         self.x = x
         self.y = y
         self.knight_id = knight_id
@@ -17,15 +14,28 @@ class Knight:
 
         self.run_frames = [pygame.transform.scale(pygame.image.load(p), (64, 64)) for p in run_images]
         self.idle_frames = [pygame.transform.scale(pygame.image.load(p), (64, 64)) for p in idle_images]
+        self.attack_frames = [pygame.transform.scale(pygame.image.load(p), (64, 64)) for p in attack_images] if attack_images else []
+
         self.current_frames = self.idle_frames
         self.current_frame = 0
         self.animation_timer = 0
         self.animation_speed = 0.1
 
+        self.is_attacking = False
+        self.attack_duration = 1.0  # in seconds
+        self.attack_timer = 0
+
     def move_to(self, x, y):
         self.target_x, self.target_y = x, y
         self.is_active = True
         self.current_frames = self.run_frames
+
+    def start_attack(self):
+        if self.attack_frames:
+            self.is_attacking = True
+            self.attack_timer = 0
+            self.current_frames = self.attack_frames
+            self.current_frame = 0
 
     def update(self, delta_time):
         if self.is_active:
@@ -34,11 +44,13 @@ class Knight:
             if abs(dx) <= self.speed and abs(dy) <= self.speed:
                 self.x, self.y = self.target_x, self.target_y
                 self.is_active = False
-                self.current_frames = self.idle_frames
-                self.current_frame = 0
+                self.start_attack()
             else:
                 self.x += self.speed if dx > 0 else -self.speed
                 self.y += self.speed if dy > 0 else -self.speed
+
+        elif self.is_attacking:
+            pass  # Keep attacking forever
 
         self.animation_timer += delta_time
         if self.animation_timer >= self.animation_speed:
@@ -73,9 +85,14 @@ class Cutscene:
             'knight_idle/knight_idle_left/knight_idle_left_2.png',
             'knight_idle/knight_idle_left/knight_idle_left_3.png'
         ]
+        self.knight_attack = [
+            'knight_attack/knight_attack_left/knight_attack_left_1.png',
+            'knight_attack/knight_attack_left/knight_attack_left_2.png',
+            'knight_attack/knight_attack_left/knight_attack_left_3.png'
+        ]
 
         self.knights = [
-            Knight(self.map_width - 100, 100 + i * 20, self.knight_run, self.knight_idle, i)
+            Knight(self.map_width - 100, 100 + i * 20, self.knight_run, self.knight_idle, i, self.knight_attack)
             for i in range(6)
         ]
 
@@ -141,7 +158,7 @@ class Cutscene:
         return not self.knights[idx].is_active
 
     def all_knights_arrived(self):
-        return all(not k.is_active for k in self.knights)
+        return all(not k.is_active and not k.is_attacking for k in self.knights)
 
     def update(self, delta_time):
         if not self.is_playing:

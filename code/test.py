@@ -22,6 +22,7 @@ def start(self):
                 self.map_width // 2 + (i * 30),  # Spread out horizontally
                 self.map_height // 2 + (i * 10)-200  # Slight vertical offset
             )
+            
 def update(self, delta_time):
         """Update the cutscene state."""
         if not self.is_playing:
