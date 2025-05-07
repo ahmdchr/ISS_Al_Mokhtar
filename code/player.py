@@ -86,15 +86,19 @@ class Player:
             self.animation_timer = 0
             self.current_frame = (self.current_frame + 1) % 4
 
-    def attack_check(self, enemies):
+    def attack_check(self, screen, enemies):
+            # Make hitbox slightly larger and better positioned
         offset = 40
         attack_rects = {
-            'down': pygame.Rect(self.x, self.y + offset, 64, 40),
-            'left': pygame.Rect(self.x - offset, self.y, 40, 64),
-            'right': pygame.Rect(self.x + offset, self.y, 40, 64),
-            'up': pygame.Rect(self.x, self.y - offset, 64, 40)
+            'down': pygame.Rect(self.x, self.y + offset, 64, 50),
+            'left': pygame.Rect(self.x - offset, self.y, 50, 64),
+            'right': pygame.Rect(self.x + offset, self.y, 50, 64),
+            'up': pygame.Rect(self.x, self.y - offset, 64, 50)
         }
+
         attack_rect = attack_rects[self.direction]
+
+        pygame.draw.rect(screen, (0,255,255), attack_rect)
 
         for enemy in enemies:
             if attack_rect.colliderect(enemy.rect) and not enemy.dead:

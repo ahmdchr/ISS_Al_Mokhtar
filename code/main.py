@@ -6,7 +6,7 @@ import pygame
 import sys
 import os
 
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT,SCALED_TILE_SIZE
 from player import Player
 from map import Map
 from KnightEnemy import KnightEnemy
@@ -96,7 +96,9 @@ def gameplay_loop(screen, clock, game_map_1,game_map_2, character):
     story_scene = StoryScene(screen, player, character, game_map_1)
 
     knights = []
-    knight_positions = [(300, 300), (800, 300), (300, 600), (800, 600), (300, 900), (800, 900)]
+    width = game_map_2.visible_width * SCALED_TILE_SIZE
+
+    knight_positions = [(width - 1450, 370), (width - 800, 650), (width - 800, 350), (width - 1150, 320), (width - 1460, 790), (width - 1150, 850)]
     for i, pos in enumerate(knight_positions):
         knight = KnightEnemy(*pos, knight_id=i)
         knights.append(knight)
@@ -121,7 +123,7 @@ def gameplay_loop(screen, clock, game_map_1,game_map_2, character):
                     player.attacking = True
                     player.attack_timer = player.attack_duration
                     player.current_frame = 0
-                    player.attack_check(knights)
+                    player.attack_check(screen,knights)
             if not paused and game_state == "story":
                 story_scene.handle_event(event)
             
@@ -136,15 +138,15 @@ def gameplay_loop(screen, clock, game_map_1,game_map_2, character):
                 player.update(delta_time, keys)
                 game_map_2.update_camera(player)
                 game_map_2.draw(screen, player=player)
-                draw_nav_bar(screen, font, player, number_of_enemies_killed, number_of_enemies_left)
-                draw_pause_button(screen,paused,pause_button,pause_font)
-                draw_audio_button(screen,pressed,audio_button,audio_font)
 
                 for knight in knights:
                     knight.update(delta_time, player)
                     knight.draw(screen, game_map_2.camera_x, game_map_2.camera_y)
 
                 player.draw(screen)
+                draw_nav_bar(screen, font, player, number_of_enemies_killed, number_of_enemies_left)
+                draw_pause_button(screen,paused,pause_button,pause_font)
+                draw_audio_button(screen,pressed,audio_button,audio_font)
 
                 if player.health <= 0:
                     game_over_font = pygame.font.Font(None, 72)

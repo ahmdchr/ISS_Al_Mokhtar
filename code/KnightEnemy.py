@@ -34,7 +34,7 @@ class KnightEnemy(Enemy):
         self.idle_frames = self.load_images('knight_idle/knight_idle_left', 3)
         self.run_frames = self.load_images('knight_run/knight_run_left', 4)
         self.attack_frames = self.load_images('knight_attack/knight_attack_left', 4)
-        self.death_frames = self.idle_frames  # Placeholder
+        self.death_frames = [pygame.transform.scale(pygame.image.load("skull.png"), (64, 64))]
 
         self.animation_list = [self.idle_frames, self.run_frames, self.attack_frames, self.death_frames]
         self.image = self.idle_frames[0]
@@ -72,7 +72,7 @@ class KnightEnemy(Enemy):
 
         if self.dead:
             self.update_action(3)
-            self.image = self.death_frames[-1]
+            self.image = self.death_frames[0]  # Show grave image only
             return
 
         # Get distance from player
@@ -129,10 +129,13 @@ class KnightEnemy(Enemy):
         offset = -40 if self.Flip else self.rect.width
         attack_rect = pygame.Rect(self.rect.x + offset, self.rect.y, 40, self.rect.height)
         if attack_rect.colliderect(player.rect):
-            player.health -= 10
+            player.health -= 5
 
     def draw(self, surface, camera_x=0, camera_y=0):
         img = pygame.transform.flip(self.image, self.Flip, False)
         surface.blit(img, (self.rect.x - camera_x, self.rect.y - camera_y))
-        self.health_bar.draw(surface, camera_x, camera_y)
+        
+        if not self.dead:
+            self.health_bar.draw(surface, camera_x, camera_y)
+
 
