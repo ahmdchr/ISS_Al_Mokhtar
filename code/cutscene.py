@@ -1,6 +1,7 @@
 import pygame
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, SCALED_TILE_SIZE
 from Fire import Fire
+from player import Player
 
 class Knight:
     def __init__(self, x, y, run_images, idle_images, knight_id, attack_images=None):
@@ -70,6 +71,7 @@ class Cutscene:
         self.camera_target_x = 0
         self.camera_target_y = 0
         self.camera_speed = 3
+        
 
         self.map_width = self.map.visible_width * SCALED_TILE_SIZE
         self.map_height = self.map.visible_height * SCALED_TILE_SIZE
@@ -112,28 +114,40 @@ class Cutscene:
         self.current_step = 0
         self.cutscene_duration = 15.0
 
+        self.player = Player(game_map)
+
+
     def start(self):
         self.is_playing = True
         self.step_timer = 0
         self.camera_x = self.map_width - 100
         self.camera_y = 100
         self.current_step = 0
+        self.player.x = 352
+        self.player.y = 290
+        self.player.direction = "left"
+        self.player.attacking = True
 
         self.steps = [
             (0.5, self.move_knight, (0, self.map_width - 1000, 250)),
             (1.0, self.move_knight, (1, self.map_width - 700, 650)),
             (1.5, self.move_knight, (2, self.map_width - 700, 250)),
-            (2.0, self.set_camera_position, (self.map_width - 1500, 0)),
+            (2.0, self.set_camera_position, (self.map_width - 1500, 0, False)),
             (3.0, self.check_and_create_fires, ()),
             (3.5, self.check_and_create_large_fires, ()),
-            (7.5, self.end_cutscene, ())
+            (4.0, self.set_camera_position, (0,0,True)),
+            (8.5, self.end_cutscene, ())
         ]
 
     def move_knight(self, knight_id, x, y):
         if 0 <= knight_id < len(self.knights):
             self.knights[knight_id].move_to(x, y)
 
-    def set_camera_position(self, x, y):
+    def set_camera_position(self, x, y, accel):
+        if accel:
+            self.camera_speed = 13
+        else: 
+            self.camera_speed = 3
         self.camera_target_x = x
         self.camera_target_y = y
         self.clamp_camera()
@@ -198,9 +212,12 @@ class Cutscene:
     def end_cutscene(self):
         self.is_playing = False
 
-    def draw(self, screen):
+    def draw(self, screen, deltatime):
         self.map.draw(screen, self.camera_x, self.camera_y)
         for fire in self.fires:
             fire.draw(screen, self.camera_x, self.camera_y)
         for knight in self.knights:
             knight.draw(screen, self.camera_x, self.camera_y)
+        self.player.update(deltatime, pygame.key.get_pressed())
+        self.player.draw(screen)
+

@@ -2,12 +2,23 @@ import pygame
 import math
 from cutscene import Cutscene
 import sys
+from settings import SCREEN_HEIGHT,SCREEN_WIDTH,SCALED_TILE_SIZE
+from camera import Camera
+from player import Player
 
 class SceneManager:
     def __init__(self, dialogue_system, screen, game_map):
         self.dialogue_system = dialogue_system
         self.scenes = {}
         self.screen = screen
+        self.camera = Camera(game_map,12,screen)
+        self.map = game_map
+        self.map_width = game_map.visible_width * SCALED_TILE_SIZE
+        self.map_height = game_map.visible_height * SCALED_TILE_SIZE
+        self.camera_target = None
+        self.camera_duration = 0
+        self.camera_start_time = 0
+        self.camera_start_pos = (0, 0)
         self.cutscene = Cutscene(game_map)
         self.current_scene = None
         self.current_action_idx = 0
@@ -22,7 +33,7 @@ class SceneManager:
     def load_scene(self, scene_name, scene_data):
         self.scenes[scene_name] = {
             'actions': scene_data,
-            'duration': 1000
+            'duration': 0
         }
 
     def start_scene(self, scene_name):
@@ -37,7 +48,7 @@ class SceneManager:
             return
 
         action = self.scenes[self.current_scene]['actions'][self.current_action_idx]
-        self.scene_duration = action.get("duration", 3000)
+        self.scene_duration = action.get("duration", 0)
         types = action['type'] if isinstance(action['type'], list) else [action['type']]
         self.last_action_time = pygame.time.get_ticks()
 
@@ -95,7 +106,6 @@ class SceneManager:
                 'frames': [0, 3] if action.get('attack_type', 1) == 1 else [1, 2]
             }
 
-
         if 'wait' in types:
             # Simply wait for the specified duration
             pass
@@ -103,6 +113,12 @@ class SceneManager:
         if 'cutscene' in types:
             self.cutscene.start()
             self.cutscene_loop()
+
+        if 'camera' in types:
+            cam_target = action.get("camera_target", (0, 0))
+            timer = action.get("timer", 0)
+            self.camera.set_camera_position(cam_target[0], cam_target[1])
+            self.camera_loop(timer)
 
         self.last_action_time = pygame.time.get_ticks()
 
@@ -114,7 +130,8 @@ class SceneManager:
 
     def update(self):
         current_time = pygame.time.get_ticks()
-        
+        self.camera.update_camera()
+
         # Update moving characters
         for character, move_data in list(self.moving_characters.items()):
             move_data['progress'] += 1
@@ -188,266 +205,38 @@ class SceneManager:
                     self.cutscene.is_playing = False
 
             self.cutscene.update(delta_time)
-            self.cutscene.draw(self.screen)
+            self.cutscene.draw(self.screen,delta_time)
             pygame.display.flip()
 
+    def camera_loop(self,duration):
+        start_time = pygame.time.get_ticks()  # Record when the loop starts
+        clock = pygame.time.Clock()
+        player = Player(self.map)
+        player.x = 352
+        player.y = 290
+        player.direction = "left"
+        player.attacking = "True"
 
+        while self.camera.is_playing:
+            current_time = pygame.time.get_ticks()
+            elapsed_time = current_time - start_time
+            delta_time = clock.tick(60) / 1000  # Convert to seconds
 
-# class SceneManager:
-#     def __init__(self, dialogue_system):
-#         self.dialogue_system = dialogue_system
-#         self.scenes = {}  # Stores scene data
-#         self.current_scene = None
-#         self.current_action_idx = 0
-#         self.scene_timer = 0
-#         self.scene_duration = 3000  # Default duration in milliseconds (3 seconds)
-#         self.last_action_time = 0
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    self.camera.is_playing = False
 
-#     def load_scene(self, scene_name, scene_data):
-#         """Load a scene with its dialogue/actions."""
-#         self.scenes[scene_name] = {
-#             'actions': scene_data,
-#             'duration': 3000  # Default duration for all actions in this scene
-#         }
-
-#     def start_scene(self, scene_name):
-#         """Start a specific scene."""
-#         if scene_name in self.scenes:
-#             self.current_scene = scene_name
-#             self.current_action_idx = 0
-#             self.last_action_time = pygame.time.get_ticks()
-#             self._execute_current_action()
-
-#     def _execute_current_action(self):
-#         """Execute the current action in the scene."""
-#         if self.current_scene is None:
-#             return
-
-#         scene_actions = self.scenes[self.current_scene]['actions']
-#         if self.current_action_idx < len(scene_actions):
-#             action = scene_actions[self.current_action_idx]
+            if elapsed_time > duration:
+                self.camera.is_playing = False
             
-#             # Set custom duration if specified in the action
-#             if 'duration' in action:
-#                 self.scene_duration = action['duration']
-#             else:
-#                 self.scene_duration = self.scenes[self.current_scene]['duration']
-            
-#             if action['type'] == 'dialogue':
-#                 dialogue_data = []
-#                 for line in action['text']:
-#                     if ": " in line:
-#                         speaker, text = line.split(": ", 1)
-#                         dialogue_data.append((speaker, text))
-#                     else:
-#                         dialogue_data.append(("", line))
-                
-#                 self.dialogue_system.set_dialogue(dialogue_data)
-#                 self.last_action_time = pygame.time.get_ticks()
-                
+            self.camera.update_camera()
+            self.camera.draw(self.screen)
+           
 
+            player.update(delta_time, pygame.key.get_pressed())
+            player.draw(self.screen)
 
-#     # def update(self):
-#     #     """Update scene timing and auto-advance if duration elapsed."""
-#     #     current_time = pygame.time.get_ticks()
-#     #     if (current_time - self.last_action_time > self.scene_duration and 
-#     #         self.current_scene is not None):
-#     #         self.advance_action()
-
-#     def advance_action(self):
-#         """Move to next action in current scene or next scene."""
-#         scene_actions = self.scenes[self.current_scene]['actions']
-#         self.current_action_idx += 1
-        
-#         if self.current_action_idx >= len(scene_actions):
-#             self.advance_scene()
-#         else:
-#             self._execute_current_action()
-
-#     def advance_scene(self):
-#         """Move to the next scene in sequence."""
-#         scene_order = ["intro0", "intro1", "intro2", "intro3", 
-#                       "intro4", "intro5", "intro6", "intro7", "intro8"]
-    
-#         if self.current_scene in scene_order:
-#             current_index = scene_order.index(self.current_scene)
-#             if current_index + 1 < len(scene_order):
-#                 next_scene = scene_order[current_index + 1]
-#                 self.start_scene(next_scene)
-#             else:
-#                 # No more scenes
-#                 self.current_scene = None
-
-
-# class SceneManager:
-#     def __init__(self, dialogue_system):
-#         self.dialogue_system = dialogue_system
-#         self.scenes = {}  # Stores scene data
-#         self.current_scene = None
-#         self.current_action_idx = 0
-#         self.scene_timer = 0
-#         self.scene_duration = 3000  # Default duration in milliseconds (3 seconds)
-#         self.last_action_time = 0
-
-#     def load_scene(self, scene_name, scene_data):
-#         """Load a scene with its dialogue/actions."""
-#         self.scenes[scene_name] = {
-#             'actions': scene_data,
-#             'duration': 3000  # Default duration for all actions in this scene
-#         }
-
-#     def start_scene(self, scene_name):
-#         """Start a specific scene."""
-#         if scene_name in self.scenes:
-#             self.current_scene = scene_name
-#             self.current_action_idx = 0
-#             self.last_action_time = pygame.time.get_ticks()
-#             self._execute_current_action()
-
-#     def _execute_current_action(self):
-#         """Execute the current action in the scene."""
-#         if self.current_scene is None:
-#             return
-
-#         scene_actions = self.scenes[self.current_scene]['actions']
-#         if self.current_action_idx < len(scene_actions):
-#             action = scene_actions[self.current_action_idx]
-            
-#             # Set custom duration if specified in the action
-#             if 'duration' in action:
-#                 self.scene_duration = action['duration']
-#             else:
-#                 self.scene_duration = self.scenes[self.current_scene]['duration']
-            
-#             if action['type'] == 'dialogue':
-#                 dialogue_data = []
-#                 for line in action['text']:
-#                     if ": " in line:
-#                         speaker, text = line.split(": ", 1)
-#                         dialogue_data.append((speaker, text))
-#                     else:
-#                         dialogue_data.append(("", line))
-                
-#                 self.dialogue_system.set_dialogue(dialogue_data)
-#                 self.last_action_time = pygame.time.get_ticks()
-
-#     def update(self):
-#         """Update scene timing and auto-advance if duration elapsed."""
-#         current_time = pygame.time.get_ticks()
-#         if (current_time - self.last_action_time > self.scene_duration and 
-#             self.current_scene is not None):
-#             self.advance_action()
-
-#     def advance_action(self):
-#         """Move to next action in current scene or next scene."""
-#         scene_actions = self.scenes[self.current_scene]['actions']
-#         self.current_action_idx += 1
-        
-#         if self.current_action_idx >= len(scene_actions):
-#             self.advance_scene()
-#         else:
-#             self._execute_current_action()
-
-#     def advance_scene(self):
-#         """Move to the next scene in sequence."""
-#         scene_order = ["intro", "intro1", "intro2", "intro3", 
-#                       "intro4", "intro5", "intro6", "intro7", "intro8"]
-    
-#         if self.current_scene in scene_order:
-#             current_index = scene_order.index(self.current_scene)
-#             if current_index + 1 < len(scene_order):
-#                 next_scene = scene_order[current_index + 1]
-#                 self.start_scene(next_scene)
-#             else:
-#                 # No more scenes
-#                 self.current_scene = None
-
-                
-# # Scene manager
-# class SceneManager:
-#     def __init__(self, dialogue_system,player):
-#         self.scene_actions = []
-#         self.current_action = 0
-#         self.action_timer = 0
-#         self.dialogue_system = dialogue_system  # Store the dialogue system
-#         self.player = player
-
-#     def add_action(self, action_type, duration, **kwargs):
-#         """
-#         Add an action to the scene
-#         action_type: 'move', 'dialogue', 'wait'
-#         duration: how many frames this action takes
-#         kwargs: additional parameters specific to the action type
-#         """
-#         self.scene_actions.append({
-#             'type': action_type,
-#             'duration': duration,
-#             'params': kwargs,
-#             'completed': False
-#         })
-
-#     def update(self, screen):
-#         if self.current_action >= len(self.scene_actions):
-#             return False
-
-#         action = self.scene_actions[self.current_action]
-
-#         if not action['completed']:
-#             # Handle different action types
-#             if action['type'] == 'move':
-#                 # Movement code stays the same
-#                 char_pos = action['params']['character_pos']
-#                 target = action['params']['target']
-#                 speed = action['params']['speed']
-
-#                 # Calculate movement
-#                 dx = target[0] - char_pos[0]
-#                 dy = target[1] - char_pos[1]
-#                 distance = (dx**2 + dy**2)**0.5
-
-#                 if distance <= speed:
-#                     char_pos[0] = target[0]
-#                     char_pos[1] = target[1]
-#                     self.player.x = char_pos[0]
-#                     self.player.y = char_pos[1]
-#                     print(f"Self.player.x{self.player.x}")
-#                     screen.blit(self.player.image_idle["down"][self.player.current_frame % 3], (self.player.x, self.player.y))
-#                     action['completed'] = True
-#                 else:
-#                     char_pos[0] += dx * speed / distance
-#                     char_pos[1] += dy * speed / distance
-
-#             elif action['type'] == 'dialogue':
-#                 if 'started' not in action:
-#                     self.dialogue_system.set_dialogue(action['params']['text'])  # Use self.dialogue_system
-#                     action['started'] = True
-
-#                 if self.action_timer >= action['duration']:
-#                     action['completed'] = True
-
-#             elif action['type'] == 'wait':
-#                 if self.action_timer >= action['duration']:
-#                     action['completed'] = True
-
-#             self.action_timer += 1
-
-#         if action['completed']:
-#             self.current_action += 1
-#             self.action_timer = 0
-
-#         return True
-
-#     def skip_to_end(self):
-#         """Skip to the end of the current scene"""
-#         for action in self.scene_actions:
-#             if action['type'] == 'move':
-#                 char_pos = action['params']['character_pos']
-#                 target = action['params']['target']
-#                 char_pos[0] = target[0]
-#                 char_pos[1] = target[1]
-
-#             action['completed'] = True
-
-#         self.current_action = len(self.scene_actions)
-#         # Also deactivate the dialogue system
-#         self.dialogue_system.active = False
+            pygame.display.flip()

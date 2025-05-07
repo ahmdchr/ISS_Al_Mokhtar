@@ -82,11 +82,11 @@ class StoryScene:
             self.show_player = True
             self.show_sister = False
             self.overlay_opacity = 0
-        elif 2 <= idx < 19:
+        elif 2 <= idx < 22:
             self.show_player = True
             self.show_sister = True
             self.overlay_opacity = 0
-        elif idx >= 19:
+        elif idx >= 22:
             self.show_player = True
             self.show_sister = False
             self.overlay_opacity = 0
