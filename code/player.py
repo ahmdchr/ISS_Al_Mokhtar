@@ -2,7 +2,7 @@
 # Simplified movement, direction handling, attack logic, and death state
 
 import pygame
-from settings import PLAYER_SPEED, ANIMATION_SPEED, SCALED_TILE_SIZE
+from settings import PLAYER_SPEED, ANIMATION_SPEED, SCALED_TILE_SIZE, TOP_MARGIN
 
 class Player:
     def __init__(self, game_map):
@@ -104,7 +104,7 @@ class Player:
 
 
     def draw(self, screen):
-        cam_x, cam_y = self.map.camera_x, self.map.camera_y
+        cam_x, cam_y = self.map.camera_x, self.map.camera_y - TOP_MARGIN
 
         if self.dead:
             dead_img = self.image_idle[self.direction][0].copy()

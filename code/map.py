@@ -3,10 +3,10 @@
 
 import pygame
 import csv
-from settings import TILESET_PATH, TILE_SIZE, SCALED_TILE_SIZE, MAP_CSV_PATHS, OBSTACLE_LAYERS, SCREEN_WIDTH, SCREEN_HEIGHT
+from settings import TILESET_PATH, TILE_SIZE, SCALED_TILE_SIZE, MAP_CSV_PATHS, OBSTACLE_LAYERS, SCREEN_WIDTH, SCREEN_HEIGHT,TOP_MARGIN
 
 class Map:
-    def __init__(self):
+    def __init__(self, margin):
         self.tileset = pygame.image.load(TILESET_PATH)
         self.tiles = self._load_tiles()
         self.map_layers = self._load_map_layers(MAP_CSV_PATHS)
@@ -16,10 +16,12 @@ class Map:
 
         self.camera_x = 0
         self.camera_y = 0
+        self.margin = margin
 
     def update_camera(self, player):
         self.camera_x = max(0, min(player.x - SCREEN_WIDTH // 2, self.visible_width * SCALED_TILE_SIZE - SCREEN_WIDTH))
-        self.camera_y = max(0, min(player.y - SCREEN_HEIGHT // 2, self.visible_height * SCALED_TILE_SIZE - SCREEN_HEIGHT))
+        self.camera_y = max(0, min(player.y - (SCREEN_HEIGHT - TOP_MARGIN) // 2, self.visible_height * SCALED_TILE_SIZE - SCREEN_HEIGHT))
+
 
     def _load_tiles(self):
         tiles = []
@@ -49,15 +51,27 @@ class Map:
         start_row = int(self.camera_y // SCALED_TILE_SIZE)
         end_row = int((self.camera_y + SCREEN_HEIGHT) // SCALED_TILE_SIZE) + 1
 
-        for layer in self.map_layers:
-            for y in range(start_row, min(end_row, len(layer))):
-                for x in range(start_col, min(end_col, len(layer[0]))):
-                    tile_index = layer[y][x]
-                    if tile_index != -1:
-                        screen.blit(
-                            pygame.transform.scale(self.tiles[tile_index], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
-                            (x * SCALED_TILE_SIZE - self.camera_x, y * SCALED_TILE_SIZE - self.camera_y)
-                        )
+        if self.margin:
+            for layer in self.map_layers:
+                for y in range(start_row, min(end_row, len(layer))):
+                    for x in range(start_col, min(end_col, len(layer[0]))):
+                        tile_index = layer[y][x]
+                        if tile_index != -1:
+                            screen.blit(
+                                pygame.transform.scale(self.tiles[tile_index], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
+                                (x * SCALED_TILE_SIZE - self.camera_x, y * SCALED_TILE_SIZE - self.camera_y + TOP_MARGIN)
+                            )
+        else: 
+            for layer in self.map_layers:
+                for y in range(start_row, min(end_row, len(layer))):
+                    for x in range(start_col, min(end_col, len(layer[0]))):
+                        tile_index = layer[y][x]
+                        if tile_index != -1:
+                            screen.blit(
+                                pygame.transform.scale(self.tiles[tile_index], (SCALED_TILE_SIZE, SCALED_TILE_SIZE)),
+                                (x * SCALED_TILE_SIZE - self.camera_x, y * SCALED_TILE_SIZE - self.camera_y)
+                            )
+
 
     def is_obstacle(self, x, y):
         if x < 0 or y < 0 or y >= len(self.map_layers[0]) or x >= len(self.map_layers[0][0]):

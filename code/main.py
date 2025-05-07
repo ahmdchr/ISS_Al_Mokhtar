@@ -18,6 +18,7 @@ from amira import Character
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen_with_margin_top = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT + 20))
 pygame.display.set_caption("Al-Mokhtar")
 clock = pygame.time.Clock()
 FPS = 60
@@ -29,17 +30,18 @@ FIRE_DIR = os.path.join(ASSET_DIR, "fire")
 UI_DIR = os.path.join(ASSET_DIR, "ui")
 
 def main():
-    game_map = Map()
-    player = Player(game_map)
-    main_menu = MainMenu(game_map)
-    character = Character(game_map)
-    cutscene = Cutscene(game_map)
+    game_map_with_no_margin = Map(False)
+    game_map_with_margin = Map(True)
+    player = Player(game_map_with_no_margin)
+    main_menu = MainMenu(game_map_with_no_margin)
+    character = Character(game_map_with_no_margin)
+    cutscene = Cutscene(game_map_with_no_margin)
 
     while True:
         if main_menu_loop(screen, main_menu):
             # cutscene.start()
             # cutscene_loop(cutscene)
-            gameplay_loop(screen, clock, game_map, character)
+            gameplay_loop(screen, clock, game_map_with_no_margin, game_map_with_margin, character)
         else:
             break
 
@@ -81,25 +83,28 @@ def cutscene_loop(cutscene):
         cutscene.draw(screen)
         pygame.display.flip()
 
-def gameplay_loop(screen, clock, game_map, character):
+def gameplay_loop(screen, clock, game_map_1,game_map_2, character):
     running = True
     paused = False
+    pressed = False
     game_state = "story"
 
-    pause_button = pygame.Rect(20, 20, 100, 40)
+    pause_button = pygame.Rect(20, 10, 100, 40)
+    audio_button = pygame.Rect(140, 10, 120, 40)
     pause_font = pygame.font.Font(None, 32)
+    audio_font = pygame.font.SysFont(None, 28)
 
-    player = Player(game_map)
-    story_scene = StoryScene(screen, player, character, game_map)
+    font = pygame.font.SysFont("Times New Roman", 20)
+    start_time = pygame.time.get_ticks()
 
+    player = Player(game_map_2)
+    story_scene = StoryScene(screen, player, character, game_map_1)
 
     knights = []
     knight_positions = [(300, 300), (800, 300), (300, 600), (800, 600), (300, 900), (800, 900)]
     for i, pos in enumerate(knight_positions):
         knight = KnightEnemy(*pos, knight_id=i)
         knights.append(knight)
-
-    health_bar = HealthBar(20, 20, player.health, 100)
 
     while running:
         delta_time = clock.tick(FPS) / 1000
@@ -111,6 +116,8 @@ def gameplay_loop(screen, clock, game_map, character):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if pause_button.collidepoint(pygame.mouse.get_pos()):
                     paused = not paused
+                if audio_button.collidepoint(pygame.mouse.get_pos()):
+                    pressed = not pressed
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_k:
                     player.attacking = True
@@ -120,7 +127,6 @@ def gameplay_loop(screen, clock, game_map, character):
             if not paused and game_state == "story":
                 story_scene.handle_event(event)
             
-
         if not paused:
             if game_state == "story":
                 story_scene.update()
@@ -130,16 +136,17 @@ def gameplay_loop(screen, clock, game_map, character):
             elif game_state == "gameplay":
                 keys = pygame.key.get_pressed()
                 player.update(delta_time, keys)
-                game_map.update_camera(player)
-                game_map.draw(screen, player=player)
+                game_map_2.update_camera(player)
+                game_map_2.draw(screen, player=player)
+                draw_nav_bar(screen, font, player, start_time)
+                draw_pause_button(screen,paused,pause_button,pause_font)
+                draw_audio_button(screen,pressed,audio_button,audio_font)
 
                 for knight in knights:
                     knight.update(delta_time, player)
-                    knight.draw(screen, game_map.camera_x, game_map.camera_y)
+                    knight.draw(screen, game_map_2.camera_x, game_map_2.camera_y)
 
                 player.draw(screen)
-                health_bar.update(player.health)
-                health_bar.draw(screen)
 
                 if player.health <= 0:
                     game_over_font = pygame.font.Font(None, 72)
@@ -148,17 +155,17 @@ def gameplay_loop(screen, clock, game_map, character):
 
                 pygame.display.flip()
 
-        pygame.draw.rect(screen, (80, 80, 80), pause_button)
-        button_text = "Pause" if not paused else "Resume"
-        pause_text = pause_font.render(button_text, True, (255, 255, 255))
-        screen.blit(pause_text, (pause_button.centerx - pause_text.get_width()//2, pause_button.centery - pause_text.get_height()//2))
-
         if paused:
             overlay = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 128))
+            draw_pause_button(screen,paused,pause_button,pause_font)
+            overlay.fill((0, 0, 0, 0))
             screen.blit(overlay, (0, 0))
             paused_text = pause_font.render("Paused", True, (255, 255, 255))
             screen.blit(paused_text, (screen.get_width()//2 - paused_text.get_width()//2, screen.get_height()//2 - paused_text.get_height()//2))
+
+        if pressed:
+            draw_audio_button(screen,pressed,audio_button,audio_font)
+            
 
         pygame.display.flip()
 
@@ -187,6 +194,70 @@ def pixel_fade_transition(screen, main_menu, block_size=20, duration=1000):
 
         pygame.display.flip()
         clock.tick(60)
+
+def draw_hearts(screen, x, y, health, max_hearts=5):
+    full_heart = pygame.image.load("heart.png").convert_alpha()
+    full_heart = pygame.transform.scale(full_heart, (30, 30))
+
+    for i in range(max_hearts):
+        heart_x = x + i * 45
+
+        # Full heart
+        if health >= (i + 1) * 20:
+            screen.blit(full_heart, (heart_x, y))
+
+        # Partial heart (some health in this chunk)
+        elif health > i * 20:
+            partial_heart = full_heart.copy()
+            partial_heart.fill((200, 0, 0, 180), special_flags=pygame.BLEND_RGBA_MULT)
+            screen.blit(partial_heart, (heart_x, y))
+
+        # Empty heart
+        else:
+            empty_heart = full_heart.copy()
+            empty_heart.fill((50, 50, 50, 100), special_flags=pygame.BLEND_RGBA_MULT)
+            screen.blit(empty_heart, (heart_x, y))
+
+def draw_nav_bar(screen, font, fighter, start_time):
+        elapsed_time_ms = pygame.time.get_ticks() - start_time
+        total_seconds = elapsed_time_ms // 1000
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+
+        # Format as HH:MM:SS
+        time_string_1 = "Time Elapsed:"
+        time_string_2 = f"{hours:02}:{minutes:02}:{seconds:02}"
+        Enemey_Count_string = "Enemies Left:"
+        Enemey_Killes_string = "Enemies Killed:"
+
+        pygame.draw.rect(screen, (30, 30, 30), (0, 0, SCREEN_WIDTH, 60))  # Dark navbar-like bar
+
+        # Render the timer text
+        timer_text_1 = font.render(time_string_1, True, (255, 255, 255))  # White text color
+        timer_text_2 = font.render(time_string_2, True, (255, 255, 255))  # White text color
+        enemies_text = font.render(Enemey_Killes_string, True, (255, 255, 255))  # White text color
+        enemies_text1 = font.render(Enemey_Count_string, True, (255, 255, 255))  # White text color
+        screen.blit(timer_text_1, (320, 10))  # Position it in the top-right corner
+        screen.blit(timer_text_2, (340, 30))  # Position it in the top-right corner
+        screen.blit(enemies_text, (510, 7))  # Position it in the top-right corner
+        screen.blit(enemies_text1, (510, 30))  # Position it in the top-right corner
+        draw_hearts(screen, 750, 10, fighter.health)   # Player's health (left side)
+
+def draw_pause_button(screen,paused,pause_button,pause_font):
+        pygame.draw.rect(screen, (80, 80, 80), pause_button)
+        button_text = "Pause" if not paused else "Resume"
+        pause_text = pause_font.render(button_text, True, (255, 255, 255))
+
+        screen.blit(pause_text, (pause_button.centerx - pause_text.get_width()//2, pause_button.centery - pause_text.get_height()//2))
+
+def draw_audio_button(screen,pressed,audio_button,pause_font):
+        pygame.draw.rect(screen, (80, 80, 80), audio_button)
+        button_text = "Audio On" if not pressed else "Audio Off"
+        pause_text = pause_font.render(button_text, True, (255, 255, 255))
+
+        screen.blit(pause_text, (audio_button.centerx - pause_text.get_width()//2, audio_button.centery - pause_text.get_height()//2))
+
 
 if __name__ == "__main__":
     main()
