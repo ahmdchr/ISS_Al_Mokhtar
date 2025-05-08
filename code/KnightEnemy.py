@@ -8,7 +8,7 @@ from HealthBar import HealthBar
 
 class KnightEnemy(Enemy):
     def __init__(self, x, y, knight_id):
-        super().__init__(x, y, False, (64, 1, [0, 0]), None, [])  # Placeholder for parent
+        super().__init__()  # Placeholder for parent
 
         self.knight_id = knight_id
         self.rect = pygame.Rect(x, y, 64, 64)
@@ -34,7 +34,7 @@ class KnightEnemy(Enemy):
         self.idle_frames = self.load_images('knight_idle/knight_idle_left', 3)
         self.run_frames = self.load_images('knight_run/knight_run_left', 4)
         self.attack_frames = self.load_images('knight_attack/knight_attack_left', 4)
-        self.death_frames = [pygame.transform.scale(pygame.image.load("skull.png"), (64, 64))]
+        self.death_frames = [pygame.transform.scale(pygame.image.load("knight_dead_animation.png"), (64, 64))]
 
         self.animation_list = [self.idle_frames, self.run_frames, self.attack_frames, self.death_frames]
         self.image = self.idle_frames[0]

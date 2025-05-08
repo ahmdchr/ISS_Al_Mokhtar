@@ -1,12 +1,9 @@
-### Cleaned and Fixed Version of main.py and Critical Components
-# Refactored to fix player freeze, missing attributes, map bugs, and cleaned structure
-
 import random
 import pygame
 import sys
 import os
 
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT,SCALED_TILE_SIZE
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, SCALED_TILE_SIZE, WHITE, BLACK
 from player import Player
 from map import Map
 from KnightEnemy import KnightEnemy
@@ -15,6 +12,8 @@ from cutscene import Cutscene
 from dialogues_text import dialogues
 from story_scene import StoryScene
 from amira import Character
+from enemy_bot import Enemy
+from player2 import Player2 
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -23,11 +22,18 @@ pygame.display.set_caption("Al-Mokhtar")
 clock = pygame.time.Clock()
 FPS = 60
 
+scene_image = pygame.image.load('fight_scene_wall.jpg')
+scene_image = pygame.transform.scale(scene_image, (SCREEN_WIDTH, SCREEN_HEIGHT - 500))  # optional
+
 ASSET_DIR = "assets"
 MAP_DIR = os.path.join(ASSET_DIR, "maps")
 ANIMATION_DIR = os.path.join(ASSET_DIR, "animations")
 FIRE_DIR = os.path.join(ASSET_DIR, "fire")
 UI_DIR = os.path.join(ASSET_DIR, "ui")
+
+# Load your music files
+pygame.mixer.music.load("main_menu_music.mp3")  # Music for the main menu
+pygame.mixer.music.set_volume(0.4)  # Set the default volume
 
 def main():
     game_map_with_no_margin = Map(False)
@@ -65,30 +71,25 @@ def main_menu_loop(screen, main_menu):
         main_menu.draw(screen)
         pygame.display.flip()
 
-def cutscene_loop(cutscene):
-    while cutscene.is_playing:
-        delta_time = clock.tick(FPS) / 1000
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                cutscene.is_playing = False
-
-        cutscene.update(delta_time)
-        cutscene.draw(screen)
-        pygame.display.flip()
-
-def gameplay_loop(screen, clock, game_map_1,game_map_2, character):
+def gameplay_loop(screen, clock, game_map_1, game_map_2, character):
     running = True
     paused = False
     pressed = False
     game_state = "story"
+    game_over = False
+    transitioned_to_second_stage = False
 
     pause_button = pygame.Rect(20, 10, 100, 40)
     audio_button = pygame.Rect(140, 10, 120, 40)
     pause_font = pygame.font.Font(None, 32)
     audio_font = pygame.font.SysFont(None, 28)
+
+    box_width, box_height = 400, 200
+    box_x = (SCREEN_WIDTH - box_width) // 2
+    box_y = 100  # <-- CENTERED AT TOP
+
+    restart_button = pygame.Rect(box_x + 50, box_y + 100, 120, 40)
+    quit_button = pygame.Rect(box_x + 230, box_y + 100, 120, 40)
 
     font = pygame.font.SysFont("Times New Roman", 20)
 
@@ -102,6 +103,10 @@ def gameplay_loop(screen, clock, game_map_1,game_map_2, character):
     for i, pos in enumerate(knight_positions):
         knight = KnightEnemy(*pos, knight_id=i)
         knights.append(knight)
+
+    # Play the gameplay music after main menu
+    pygame.mixer.music.load("gameplay_music_1.mp3")  # Music for the first stage
+    pygame.mixer.music.play(-1, 0.0)  # Loop the music indefinitely
 
     while running:
         delta_time = clock.tick(FPS) / 1000
@@ -118,12 +123,20 @@ def gameplay_loop(screen, clock, game_map_1,game_map_2, character):
                     paused = not paused
                 if audio_button.collidepoint(pygame.mouse.get_pos()):
                     pressed = not pressed
+                    pygame.mixer.music.set_volume(0 if pressed else 0.4)  # Toggle music volume
+
+                if restart_button.collidepoint(pygame.mouse.get_pos()):
+                    gameplay_loop(screen, clock, game_map_1, game_map_2, character)
+                if quit_button.collidepoint(pygame.mouse.get_pos()):
+                    pygame.quit()
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_k:
                     player.attacking = True
                     player.attack_timer = player.attack_duration
                     player.current_frame = 0
-                    player.attack_check(screen,knights)
+                    player.attack_check(screen, knights)
+
             if not paused and game_state == "story":
                 story_scene.handle_event(event)
             
@@ -143,28 +156,63 @@ def gameplay_loop(screen, clock, game_map_1,game_map_2, character):
                     knight.update(delta_time, player)
                     knight.draw(screen, game_map_2.camera_x, game_map_2.camera_y)
 
+                # Transition condition
+                if not transitioned_to_second_stage and number_of_enemies_killed >= 6:
+                    player_x, player_y = game_map_2.camera_x, game_map_2.camera_y
+                    target_x, target_y = 1772, 1189
+
+                    if abs(player_x - target_x) < 50 and abs(player_y - target_y) < 50:
+                        # Trigger your transition here
+                        transitioned_to_second_stage = True  # Mark it as done
+                        pixel_fade_transition(screen, game_map_2)  # Or any transition effect
+                        pygame.mixer.music.load("gameplay_music_2.mp3")  # Change to second stage music
+                        pygame.mixer.music.play(-1, 0.0)  # Loop indefinitely
+
+                if transitioned_to_second_stage:
+                    number_of_enemies_killed = 7
+                    number_of_enemies_left = 0
+
                 player.draw(screen)
+
                 draw_nav_bar(screen, font, player, number_of_enemies_killed, number_of_enemies_left)
-                draw_pause_button(screen,paused,pause_button,pause_font)
-                draw_audio_button(screen,pressed,audio_button,audio_font)
+                draw_pause_button(screen, paused, pause_button, pause_font)
+                draw_audio_button(screen, pressed, audio_button, audio_font)
 
                 if player.health <= 0:
-                    game_over_font = pygame.font.Font(None, 72)
-                    game_over_text = game_over_font.render("Game Over", True, (255, 0, 0))
-                    screen.blit(game_over_text, (SCREEN_WIDTH//2 - game_over_text.get_width()//2, SCREEN_HEIGHT//2 - game_over_text.get_height()//2))
+                    game_over = True
+
+                if game_over:
+                    overlay = pygame.Surface((box_width, box_height), pygame.SRCALPHA)
+                    overlay.fill((0, 0, 0, 180))
+                    screen.blit(overlay, (box_x, box_y))
+                    pygame.draw.rect(screen, (255, 255, 255), (box_x, box_y, box_width, box_height), 4)
+
+                    title = font.render("Game Over", True, WHITE)
+                    screen.blit(title, (box_x + (box_width - title.get_width()) // 2, box_y + 20))
+
+                    pygame.draw.rect(screen, (100, 100, 100), restart_button)
+                    pygame.draw.rect(screen, (100, 100, 100), quit_button)
+
+                    restart_text = font.render("Restart", True, WHITE)
+                    quit_text = font.render("Quit", True, WHITE)
+
+                    screen.blit(restart_text, (restart_button.centerx - restart_text.get_width() // 2,
+                                            restart_button.centery - restart_text.get_height() // 2))
+                    screen.blit(quit_text, (quit_button.centerx - quit_text.get_width() // 2,
+                                            quit_button.centery - quit_text.get_height() // 2))
 
                 pygame.display.flip()
 
         if paused:
             overlay = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
-            draw_pause_button(screen,paused,pause_button,pause_font)
+            draw_pause_button(screen, paused, pause_button, pause_font)
             overlay.fill((0, 0, 0, 0))
             screen.blit(overlay, (0, 0))
             paused_text = pause_font.render("Paused", True, (255, 255, 255))
-            screen.blit(paused_text, (screen.get_width()//2 - paused_text.get_width()//2, screen.get_height()//2 - paused_text.get_height()//2))
+            screen.blit(paused_text, (screen.get_width() // 2 - paused_text.get_width() // 2, screen.get_height() // 2 - paused_text.get_height() // 2))
 
         if pressed:
-            draw_audio_button(screen,pressed,audio_button,audio_font)
+            draw_audio_button(screen, pressed, audio_button, audio_font)
             
 
         pygame.display.flip()
@@ -219,45 +267,41 @@ def draw_hearts(screen, x, y, health, max_hearts=5):
             screen.blit(empty_heart, (heart_x, y))
 
 def draw_nav_bar(screen, font, fighter, killed, left):
-        elapsed_time_ms = pygame.time.get_ticks()
-        total_seconds = elapsed_time_ms // 1000
-        hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
-        seconds = total_seconds % 60
+    elapsed_time_ms = pygame.time.get_ticks()
+    total_seconds = elapsed_time_ms // 1000
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
 
-        # Format as HH:MM:SS
-        time_string_1 = "Time Elapsed:"
-        time_string_2 = f"{hours:02}:{minutes:02}:{seconds:02}"
-        Enemey_Count_string = f"Enemies Left: {left}"
-        Enemey_Killes_string = f"Enemies Killed: {killed}"
+    # Format as HH:MM:SS
+    time_string_1 = "Time Elapsed:"
+    time_string_2 = f"{hours:02}:{minutes:02}:{seconds:02}"
+    Enemey_Count_string = f"Enemies Left: {left}"
+    Enemey_Killes_string = f"Enemies Killed: {killed}"
 
-        pygame.draw.rect(screen, (30, 30, 30), (0, 0, SCREEN_WIDTH, 60))  # Dark navbar-like bar
+    pygame.draw.rect(screen, (30, 30, 30), (0, 0, SCREEN_WIDTH, 60))  # Dark navbar-like bar
 
-        # Render the timer text
-        timer_text_1 = font.render(time_string_1, True, (255, 255, 255))  # White text color
-        timer_text_2 = font.render(time_string_2, True, (255, 255, 255))  # White text color
-        enemies_text = font.render(Enemey_Killes_string, True, (255, 255, 255))  # White text color
-        enemies_text1 = font.render(Enemey_Count_string, True, (255, 255, 255))  # White text color
-        screen.blit(timer_text_1, (320, 10))  # Position it in the top-right corner
-        screen.blit(timer_text_2, (340, 30))  # Position it in the top-right corner
-        screen.blit(enemies_text, (510, 7))  # Position it in the top-right corner
-        screen.blit(enemies_text1, (510, 30))  # Position it in the top-right corner
-        draw_hearts(screen, 750, 10, fighter.health)   # Player's health (left side)
+    # Render the timer text
+    timer_text_1 = font.render(time_string_1, True, (255, 255, 255))  # White text color
+    timer_text_2 = font.render(time_string_2, True, (255, 255, 255))  # White text color
+    enemies_text = font.render(Enemey_Killes_string, True, (255, 255, 255))  # White text color
+    enemies_text1 = font.render(Enemey_Count_string, True, (255, 255, 255))  # White text color
+    screen.blit(timer_text_1, (320, 10))  # Position it in the top-right corner
+    screen.blit(timer_text_2, (340, 30))  # Position it in the top-right corner
+    screen.blit(enemies_text, (510, 30))
+    screen.blit(enemies_text1, (510, 10))
 
-def draw_pause_button(screen,paused,pause_button,pause_font):
-        pygame.draw.rect(screen, (80, 80, 80), pause_button)
-        button_text = "Pause" if not paused else "Resume"
-        pause_text = pause_font.render(button_text, True, (255, 255, 255))
+def draw_pause_button(screen, paused, button_rect, font):
+    pygame.draw.rect(screen, (200, 200, 200), button_rect)
+    pause_text = font.render("Pause" if not paused else "Resume", True, (0, 0, 0))
+    screen.blit(pause_text, (button_rect.centerx - pause_text.get_width() // 2,
+                            button_rect.centery - pause_text.get_height() // 2))
 
-        screen.blit(pause_text, (pause_button.centerx - pause_text.get_width()//2, pause_button.centery - pause_text.get_height()//2))
-
-def draw_audio_button(screen,pressed,audio_button,pause_font):
-        pygame.draw.rect(screen, (80, 80, 80), audio_button)
-        button_text = "Audio On" if not pressed else "Audio Off"
-        pause_text = pause_font.render(button_text, True, (255, 255, 255))
-
-        screen.blit(pause_text, (audio_button.centerx - pause_text.get_width()//2, audio_button.centery - pause_text.get_height()//2))
-
+def draw_audio_button(screen, pressed, button_rect, font):
+    pygame.draw.rect(screen, (200, 200, 200), button_rect)
+    audio_text = font.render("Audio Off" if pressed else "Audio On", True, (0, 0, 0))
+    screen.blit(audio_text, (button_rect.centerx - audio_text.get_width() // 2,
+                            button_rect.centery - audio_text.get_height() // 2))
 
 if __name__ == "__main__":
     main()

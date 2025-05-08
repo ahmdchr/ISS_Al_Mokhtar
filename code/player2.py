@@ -1,10 +1,7 @@
-### Refactored player.py
-# Simplified movement, direction handling, attack logic, and death state
-
 import pygame
-from settings import PLAYER_SPEED, ANIMATION_SPEED, SCALED_TILE_SIZE, TOP_MARGIN
+from settings import PLAYER_SPEED, ANIMATION_SPEED, SCALED_TILE_SIZE
 
-class Player:
+class Player2:
     def __init__(self, game_map):
         self.x, self.y = 300, 450
         self.direction = 'down'
@@ -13,13 +10,13 @@ class Player:
         self.animation_timer = 0
         self.speed = PLAYER_SPEED
         self.animation_speed = ANIMATION_SPEED
-        self.map = game_map
+        self.map = game_map  # unused but left intact
 
         self.attacking = False
         self.attack_duration = 0.4
         self.attack_timer = 0
 
-        self.health = 200
+        self.health = 100
         self.max_health = 100
         self.dead = False
 
@@ -37,10 +34,10 @@ class Player:
             'up': [pygame.transform.scale(pygame.image.load(f'{action}/hero_up/hero_up_{i+1}.png'), size) for i in range(frames)]
         }
 
-    def can_move(self, new_x, new_y):
-        tile_x = int(new_x // SCALED_TILE_SIZE)
-        tile_y = int(new_y // SCALED_TILE_SIZE)
-        return not self.map.is_obstacle(tile_x, tile_y)
+    # def can_move(self, new_x, new_y):
+    #     tile_x = int(new_x // SCALED_TILE_SIZE)
+    #     tile_y = int(new_y // SCALED_TILE_SIZE)
+    #     return not self.map.is_obstacle(tile_x, tile_y)
 
     def update(self, delta_time, keys):
         if self.health <= 0:
@@ -50,7 +47,6 @@ class Player:
         new_x, new_y = self.x, self.y
         moved = False
 
-
         if self.attacking:
             self.attack_timer -= delta_time
             if self.attack_timer <= 0:
@@ -58,36 +54,39 @@ class Player:
 
         directions = {
             pygame.K_LEFT: ('left', -self.speed * delta_time, 0),
-            pygame.K_q: ('left', -self.speed * delta_time, 0),
-            pygame.K_RIGHT: ('right', self.speed * delta_time, 0),
-            pygame.K_d: ('right', self.speed * delta_time, 0),
-            pygame.K_UP: ('up', 0, -self.speed * delta_time),
-            pygame.K_z: ('up', 0, -self.speed * delta_time),
+            pygame.K_q:    ('left', -self.speed * delta_time, 0),
+            pygame.K_RIGHT:('right', self.speed * delta_time, 0),
+            pygame.K_d:    ('right', self.speed * delta_time, 0),
+            pygame.K_UP:   ('up', 0, -self.speed * delta_time),
+            pygame.K_z:    ('up', 0, -self.speed * delta_time),
             pygame.K_DOWN: ('down', 0, self.speed * delta_time),
-            pygame.K_s: ('down', 0, self.speed * delta_time)
+            pygame.K_s:    ('down', 0, self.speed * delta_time)
         }
 
         for key, (dir_str, dx, dy) in directions.items():
             if keys[key]:
                 self.direction = dir_str
-                test_x, test_y = new_x + dx, new_y + dy
-                if self.can_move(test_x + 32, test_y + 32):  # Center-point collision check
-                    new_x += dx
-                    new_y += dy
-                    moved = True
+                new_x += dx
+                new_y += dy
+                moved = True
 
         if moved:
             self.x, self.y = new_x, new_y
+
+            # Limit horizontal movement within screen bounds
+            self.x = max(0, min(self.x, pygame.display.get_surface().get_width() - self.rect.width))
+            
+            # Limit vertical movement, accounting for top UI margin
+            self.y = max(45, min(self.y, pygame.display.get_surface().get_height() - self.rect.height))
+
             self.rect.topleft = (int(self.x), int(self.y))
-            self.map.update_camera(self)
 
         self.animation_timer += delta_time
         if self.animation_timer >= self.animation_speed:
             self.animation_timer = 0
             self.current_frame = (self.current_frame + 1) % 4
 
-    def attack_check(self, screen, enemies):
-            # Make hitbox slightly larger and better positioned
+    def attack_check(self, screen, enemy):
         offset = 40
         attack_rects = {
             'down': pygame.Rect(self.x, self.y + offset, 64, 50),
@@ -98,36 +97,16 @@ class Player:
 
         attack_rect = attack_rects[self.direction]
 
-        pygame.draw.rect(screen, (0,255,255), attack_rect)
+        # pygame.draw.rect(screen, (0,255,255), attack_rect)
 
-        for enemy in enemies:
-            if attack_rect.colliderect(enemy.rect) and not enemy.dead:
-                enemy.health -= 10
-                if enemy.health <= 0:
-                    enemy.dead = True
-
-    def attack_check_1(self, screen, enemy):
-            # Make hitbox slightly larger and better positioned
-        offset = 40
-        attack_rects = {
-            'down': pygame.Rect(self.x, self.y + offset, 64, 50),
-            'left': pygame.Rect(self.x - offset, self.y, 50, 64),
-            'right': pygame.Rect(self.x + offset, self.y, 50, 64),
-            'up': pygame.Rect(self.x, self.y - offset, 64, 50)
-        }
-
-        attack_rect = attack_rects[self.direction]
-
-        pygame.draw.rect(screen, (0,255,255), attack_rect)
-    
         if attack_rect.colliderect(enemy.rect) and not enemy.dead:
             enemy.health -= 10
             if enemy.health <= 0:
                 enemy.dead = True
 
-
     def draw(self, screen):
-        cam_x, cam_y = self.map.camera_x, self.map.camera_y - TOP_MARGIN
+        # cam_x, cam_y = self.map.camera_x, self.map.camera_y  # disabled camera
+        cam_x, cam_y = 0, 0  # draw relative to screen
 
         if self.dead:
             dead_img = pygame.image.load('mokhtar_dead_animation.png')
