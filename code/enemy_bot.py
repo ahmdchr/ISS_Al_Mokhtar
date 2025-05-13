@@ -17,6 +17,10 @@ class Enemy:
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
 
+
+        self.damage_sound = pygame.mixer.Sound("damage.mp3")
+        self.damage_sound.set_volume(0.5)  # optional: adjust volume
+
         # Combat
         self.attack_move = False
         self.damage_applied = False
@@ -158,6 +162,7 @@ class Enemy:
             current_animation = self.get_current_animation()
             if current_animation and len(current_animation) > 0:
                 if self.current_frame == 2 and not self.damage_applied and attack_rect.colliderect(target.rect):
+                    self.damage_sound.play()
                     target.health -= 10
                     self.damage_applied = True
 

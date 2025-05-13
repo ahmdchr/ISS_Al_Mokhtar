@@ -2,13 +2,15 @@ import pygame
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, SCALED_TILE_SIZE
 from Fire import Fire
 from player import Player
+import pygame
+import math
 
 class Knight:
     def __init__(self, x, y, run_images, idle_images, knight_id, attack_images=None):
         self.x = x
         self.y = y
         self.knight_id = knight_id
-        self.speed = 10
+        self.speed = 11 # Use same speed as KnightEnemy
         self.target_x = x
         self.target_y = y
         self.is_active = False
@@ -26,6 +28,11 @@ class Knight:
         self.attack_duration = 1.0  # in seconds
         self.attack_timer = 0
 
+        self.flip = False  # For flipping the sprite direction
+
+        self.patrol_points = [(x, y)]  # Optional future extension
+        self.current_patrol_index = 0
+
     def move_to(self, x, y):
         self.target_x, self.target_y = x, y
         self.is_active = True
@@ -37,6 +44,17 @@ class Knight:
             self.attack_timer = 0
             self.current_frames = self.attack_frames
             self.current_frame = 0
+
+    def move_towards(self, x, y):
+        dx, dy = x - self.x, y - self.y
+        dist = max(1, math.hypot(dx, dy))
+        dx, dy = dx / dist * self.speed, dy / dist * self.speed
+
+        self.flip = dx < 0  # Flip the sprite based on direction
+        self.x += dx
+        self.y += dy
+
+        self.current_frames = self.run_frames
 
     def update(self, delta_time):
         if self.is_active:
@@ -59,7 +77,10 @@ class Knight:
             self.current_frame = (self.current_frame + 1) % len(self.current_frames)
 
     def draw(self, screen, cam_x, cam_y):
-        screen.blit(self.current_frames[self.current_frame], (self.x - cam_x, self.y - cam_y))
+        frame = self.current_frames[self.current_frame]
+        if self.flip:
+            frame = pygame.transform.flip(frame, True, False)
+        screen.blit(frame, (self.x - cam_x, self.y - cam_y))
 
 class Cutscene:
     def __init__(self, game_map):
@@ -70,7 +91,7 @@ class Cutscene:
         self.camera_y = 0
         self.camera_target_x = 0
         self.camera_target_y = 0
-        self.camera_speed = 3
+        self.camera_speed = 5
         
 
         self.map_width = self.map.visible_width * SCALED_TILE_SIZE

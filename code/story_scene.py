@@ -24,6 +24,18 @@ class StoryScene:
         self.hide_next_button = False
         self.skip_font = pygame.font.Font(None, 28)
 
+        self.bird_sound = pygame.mixer.Sound("bird.mp3")
+        self.bird_sound.set_volume(0.5)  # optional: adjust volume
+        self.horn_sound = pygame.mixer.Sound("horn.mp3")
+        self.horn_sound.set_volume(0.1)  # optional: adjust volume
+        self.metal_sound = pygame.mixer.Sound("metal_crash.mp3")
+        self.metal_sound.set_volume(0.5)  # optional: adjust volume
+        self.bird_sound_played = False
+        self.horn_sound_played = False
+        self.horn_sound_stopped = False
+        self.metal_sound_played = False
+        self.metal_sound_stopped = False
+
         self.skip_stage = 0
         self.done = False
 
@@ -74,22 +86,51 @@ class StoryScene:
             return
 
         idx = self.scene_manager.current_action_idx
+
         if idx < 2:
+            if not self.bird_sound_played:
+                self.bird_sound.play()
+                self.bird_sound_played = True
+
             self.show_player = False
             self.show_sister = False
             self.overlay_opacity = 210 if self.darken_dialogues else 0
+
         elif 2 <= idx < 9:
+            if self.bird_sound_played:
+                self.bird_sound.stop()
+                self.bird_sound_played = False
+
             self.show_player = True
             self.show_sister = False
             self.overlay_opacity = 0
+
+            if idx == 6 and not self.horn_sound_played:
+                self.horn_sound.play()
+                self.horn_sound_played = True
+
+            if idx == 7 and not self.horn_sound_stopped:
+                self.horn_sound.stop()
+                self.horn_sound_stopped = True
+
         elif 2 <= idx < 22:
             self.show_player = True
             self.show_sister = True
             self.overlay_opacity = 0
+            
+            if idx == 10 and not self.metal_sound_played:
+                self.metal_sound.play()
+                self.metal_sound_played = True
+
+            if idx == 12 and not self.metal_sound_stopped:
+                self.metal_sound.stop()
+                self.metal_sound_stopped = True
+
         elif idx >= 22:
             self.show_player = True
             self.show_sister = False
             self.overlay_opacity = 0
+
 
     def draw(self):
         if self.done:

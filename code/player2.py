@@ -12,6 +12,9 @@ class Player2:
         self.animation_speed = ANIMATION_SPEED
         self.map = game_map  # unused but left intact
 
+        self.attack_sound = pygame.mixer.Sound("attack_sound.mp3")
+        self.attack_sound.set_volume(0.5)  # optional: adjust volume
+
         self.attacking = False
         self.attack_duration = 0.4
         self.attack_timer = 0
@@ -87,14 +90,19 @@ class Player2:
             self.current_frame = (self.current_frame + 1) % 4
 
     def attack_check(self, screen, enemy):
+        if self.dead:
+            return
+        
         offset = 40
         attack_rects = {
-            'down': pygame.Rect(self.x, self.y + offset, 64, 50),
+            'down': pygame.Rect(self.x, self.y + offset + 20, 64, 50),
             'left': pygame.Rect(self.x - offset, self.y, 50, 64),
             'right': pygame.Rect(self.x + offset, self.y, 50, 64),
             'up': pygame.Rect(self.x, self.y - offset, 64, 50)
         }
 
+        self.attack_sound.play()
+        
         attack_rect = attack_rects[self.direction]
 
         # pygame.draw.rect(screen, (0,255,255), attack_rect)

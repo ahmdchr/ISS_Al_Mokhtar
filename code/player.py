@@ -14,12 +14,15 @@ class Player:
         self.speed = PLAYER_SPEED
         self.animation_speed = ANIMATION_SPEED
         self.map = game_map
-
+     
+        self.attack_sound = pygame.mixer.Sound("attack_sound.mp3")
+        self.attack_sound.set_volume(0.5)  # optional: adjust volume
+    
         self.attacking = False
         self.attack_duration = 0.4
         self.attack_timer = 0
 
-        self.health = 200
+        self.health = 100
         self.max_health = 100
         self.dead = False
 
@@ -49,8 +52,8 @@ class Player:
 
         new_x, new_y = self.x, self.y
         moved = False
-
-
+        river = False
+    
         if self.attacking:
             self.attack_timer -= delta_time
             if self.attack_timer <= 0:
@@ -71,14 +74,30 @@ class Player:
             if keys[key]:
                 self.direction = dir_str
                 test_x, test_y = new_x + dx, new_y + dy
+
                 if self.can_move(test_x + 32, test_y + 32):  # Center-point collision check
                     new_x += dx
                     new_y += dy
                     moved = True
+                # Special case: river boundaries
+                if test_y >= 850 and test_y < 950 and not self.can_move(test_x, test_y + 100):
+                    new_x += dx
+                    new_y -= dy  
+                    moved = True
+                    river = True
+
+        # Ensure final position is within bounds (redundant safety check)
+        new_x = max(10, min(new_x, 2930))
+        new_y = max(20, min(new_y, 1900))
 
         if moved:
-            self.x, self.y = new_x, new_y
-            self.rect.topleft = (int(self.x), int(self.y))
+            if not river:
+                self.x, self.y = new_x, new_y
+                self.rect.topleft = (int(self.x), int(self.y))
+            if river:
+                self.x, self.y = new_x, new_y
+                self.rect.topleft = (int(self.x), int(self.y))
+           
             self.map.update_camera(self)
 
         self.animation_timer += delta_time
@@ -87,43 +106,25 @@ class Player:
             self.current_frame = (self.current_frame + 1) % 4
 
     def attack_check(self, screen, enemies):
-            # Make hitbox slightly larger and better positioned
+        # Make hitbox slightly larger and better positioned
         offset = 40
         attack_rects = {
-            'down': pygame.Rect(self.x, self.y + offset, 64, 50),
-            'left': pygame.Rect(self.x - offset, self.y, 50, 64),
-            'right': pygame.Rect(self.x + offset, self.y, 50, 64),
-            'up': pygame.Rect(self.x, self.y - offset, 64, 50)
+            'down': pygame.Rect(self.x, self.y + offset + 60, 64, 50),
+            'left': pygame.Rect(self.x - offset + 20, self.y + 60, 50, 64),
+            'right': pygame.Rect(self.x + offset, self.y + 60, 50, 64),
+            'up': pygame.Rect(self.x, self.y + offset + 5, 64, 50)
         }
+        self.attack_sound.play()
 
         attack_rect = attack_rects[self.direction]
 
-        pygame.draw.rect(screen, (0,255,255), attack_rect)
+        # pygame.draw.rect(screen, (0,255,255), attack_rect)
 
         for enemy in enemies:
             if attack_rect.colliderect(enemy.rect) and not enemy.dead:
                 enemy.health -= 10
                 if enemy.health <= 0:
                     enemy.dead = True
-
-    def attack_check_1(self, screen, enemy):
-            # Make hitbox slightly larger and better positioned
-        offset = 40
-        attack_rects = {
-            'down': pygame.Rect(self.x, self.y + offset, 64, 50),
-            'left': pygame.Rect(self.x - offset, self.y, 50, 64),
-            'right': pygame.Rect(self.x + offset, self.y, 50, 64),
-            'up': pygame.Rect(self.x, self.y - offset, 64, 50)
-        }
-
-        attack_rect = attack_rects[self.direction]
-
-        pygame.draw.rect(screen, (0,255,255), attack_rect)
-    
-        if attack_rect.colliderect(enemy.rect) and not enemy.dead:
-            enemy.health -= 10
-            if enemy.health <= 0:
-                enemy.dead = True
 
 
     def draw(self, screen):

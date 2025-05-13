@@ -59,7 +59,7 @@ class MainMenu:
         self.map = game_map
         self.title_image = pygame.transform.scale(pygame.image.load(TITLE_PATH), (627, 145))
         self.start_button = Button(SCREEN_WIDTH//2 - 275, SCREEN_HEIGHT//2, 527, 133, START_BUTTON_PATH, START_BUTTON_HOVER_PATH)
-        self.quit_button = Button(SCREEN_WIDTH//2 - 275, SCREEN_HEIGHT//2 + 200, 527, 133, QUIT_BUTTON_PATH, QUIT_BUTTON_HOVER_PATH)
+        self.quit_button = Button(SCREEN_WIDTH//2 - 415, SCREEN_HEIGHT//2 + 50, 810, 400, QUIT_BUTTON_PATH, QUIT_BUTTON_HOVER_PATH)
 
         self.scroll_speed = 1
         self.offset_x = 0

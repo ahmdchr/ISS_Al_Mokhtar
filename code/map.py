@@ -19,8 +19,17 @@ class Map:
         self.margin = margin
 
     def update_camera(self, player):
-        self.camera_x = max(0, min(player.x - SCREEN_WIDTH // 2, self.visible_width * SCALED_TILE_SIZE - SCREEN_WIDTH))
-        self.camera_y = max(0, min(player.y - (SCREEN_HEIGHT - TOP_MARGIN) // 2, self.visible_height * SCALED_TILE_SIZE - SCREEN_HEIGHT))
+        visible_screen_height = SCREEN_HEIGHT - 20 if self.margin else SCREEN_HEIGHT
+
+        self.camera_x = max(0, min(
+            player.x - SCREEN_WIDTH // 2,
+            self.visible_width * SCALED_TILE_SIZE - SCREEN_WIDTH
+        ))
+
+        self.camera_y = max(0, min(
+            player.y - visible_screen_height // 2,
+            self.visible_height * SCALED_TILE_SIZE - visible_screen_height
+        ))
 
 
     def _load_tiles(self):

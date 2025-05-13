@@ -13,6 +13,9 @@ class KnightEnemy(Enemy):
         self.knight_id = knight_id
         self.rect = pygame.Rect(x, y, 64, 64)
 
+        self.damage_sound = pygame.mixer.Sound("damage.mp3")
+        self.damage_sound.set_volume(0.5)  # optional: adjust volume
+
         self.attack_radius = 100
         self.patrol_radius = 250
         self.patrol_points = self.generate_patrol_points(x, y)
@@ -129,6 +132,7 @@ class KnightEnemy(Enemy):
         offset = -40 if self.Flip else self.rect.width
         attack_rect = pygame.Rect(self.rect.x + offset, self.rect.y, 40, self.rect.height)
         if attack_rect.colliderect(player.rect):
+            self.damage_sound.play()
             player.health -= 5
 
     def draw(self, surface, camera_x=0, camera_y=0):
@@ -137,5 +141,3 @@ class KnightEnemy(Enemy):
         
         if not self.dead:
             self.health_bar.draw(surface, camera_x, camera_y)
-
-
