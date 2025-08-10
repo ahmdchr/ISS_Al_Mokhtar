@@ -48,7 +48,7 @@ Install librairies
   pip install pygame
 ```
 
-Start the server
+Start the game
 
 ```bash
   py ./code/main.py
