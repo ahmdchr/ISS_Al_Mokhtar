@@ -46,7 +46,7 @@ Meet the heroes of Al_Mokhtar:
       <td align="center">
         <img src="knight.png" alt="Knight" width="100"/><br>
         <b>Knight</b><br>
-        <i>The brave warrior</i>
+        <i>The evil knight</i>
       </td>
     </tr>
   </table>
