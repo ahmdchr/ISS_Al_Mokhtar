@@ -55,8 +55,9 @@ Meet the heroes of Al_Mokhtar:
 ## 📸 Screenshots
 
 ### Main Menu
-<img align="center" src="screenshots/Mainmenu.png" alt="Main Menu" width="600"/>
-
+<div align="center">
+  <img src="screenshots/Mainmenu.png" alt="Main Menu" width="600"/>
+</div>
 ### Gameplay Gallery
 <div align="center">
   <table>
