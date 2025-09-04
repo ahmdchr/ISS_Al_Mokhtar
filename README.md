@@ -183,7 +183,7 @@ If you encounter any issues or have questions:
 
 - 🐛 [Report a Bug](https://github.com/ahmdchr/ISS_Al_Mokhtar/issues)
 - 💡 [Request a Feature](https://github.com/ahmdchr/ISS_Al_Mokhtar/issues)
-- 📧 Contact: [Your Email] (optional)
+- 📧 Contact: ahmed.chourou@medtech.tn
 
 ---
 
