@@ -41,7 +41,7 @@ Meet the heroes of Al_Mokhtar:
       <td align="center">
         <img src="amira.png" alt="Amira" width="100"/><br>
         <b>Amira</b><br>
-        <i>The wise companion</i>
+        <i>Mokhtar's sister</i>
       </td>
       <td align="center">
         <img src="knight.png" alt="Knight" width="100"/><br>
